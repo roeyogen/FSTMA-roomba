@@ -79,7 +79,23 @@ class Env(gym.Env):
 
         return True
 
-    # def is_done(self):
+    def is_done(self):
+
+        # check if all robots are in charging
+        for i in range(self.number_of_agents):
+            if self.agents['Agent_{}'.format(i + 1)][0] not in self.charging_points:
+                return False
+
+        # check if all board is zeros (or charge / out)
+        to_compare = np.full((self.height, self.length), 0, dtype=int)
+        for column in range(0, self.length, self.width + 1):
+            to_compare[:, column] = self.OUT
+            to_compare[self.height // 2, column] = self.CHARGE
+
+        if not np.array_equal(to_compare,self.board):
+            return False
+
+        return True
 
     def step(self, action):
         new_agents = copy.deepcopy(self.agents)
