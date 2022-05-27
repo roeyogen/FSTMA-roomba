@@ -4,6 +4,7 @@ import numpy as np
 import gym
 from gym import spaces
 import itertools
+import termcolor
 from termcolor import colored
 
 
@@ -134,16 +135,19 @@ class Env(gym.Env):
             for c in range(self.length):
                 val = self.board[r, c]
                 if val == self.OUT:
-                    res += " " + colored(str(val).ljust(7), 'red') + " |"  # format
+                    res += " " + colored("=======".ljust(7), 'grey') + " |"  # format
                 elif (r, c) in [agent[0] for agent in self.agents.values()]:
                     for i in range(self.number_of_agents):
                         if (r, c) == self.agents['Agent_{}'.format(i + 1)][0]:
                             val = 'Agent_{}'.format(i + 1)
                     res += " " + colored(str(val).ljust(7), 'blue') + " |"  # format
                 elif val == self.CHARGE:
-                    res += " " + colored(str(val).ljust(7), 'green') + " |"  # format
+                    res += " " + colored("CHARGE".ljust(7), 'green') + " |"  # format
                 else:
-                    res += " " + str(val).ljust(7) + " |"  # format
+                    if val == 0:
+                        res += " " + colored("".ljust(7), 'white') + " |"  # format
+                    else:
+                        res += " " + str(val).ljust(7) + " |"  # format
             res += "\n"
         print(res)
 
