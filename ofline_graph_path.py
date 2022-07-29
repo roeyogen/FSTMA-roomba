@@ -49,7 +49,7 @@ class Node:
     def is_goal(self):
 
         if self.finishing_side == "right":
-            if self.agent_loc != [self.height // 2, -1]:
+            if self.agent_loc != [self.height // 2, self.width-1]:
                 return False
 
         if self.finishing_side == "left":
@@ -66,6 +66,8 @@ class Node:
         if not np.array_equal(to_compare, self.board):
             return False
 
+        print("SUCCESS:")
+        print(self)
         return True
 
     def is_in_board(self, agent_loc):
@@ -134,7 +136,7 @@ class NodesCollection:
     def __contains__(self, node):
         return node in self._collection
 
-    def get_node(self, board,agent_loc,agent_fuel):
+    def get_node(self, node):
         #assert (board,agent_loc,agent_fuel) in self._collection
         return self._collection[node]
 
@@ -217,10 +219,9 @@ class BestFirstSearch():
         self.name = "abstract best first search"
 
     def _calc_node_priority(self, node):
-        
-        # calc how clean board is
 
-        return node.g_value
+        # calc how clean board is
+        return node.g_value + np.sum(node.board[:,1:-1])
 
     def solve(self, graph, time_limit=float("inf"), compute_all_dists=False):
         start_time = curr_time()
@@ -268,6 +269,7 @@ class BestFirstSearch():
                 if s is None:
                     continue
                 successor_node = s
+                print(s)
                 successor_node_priority = self._calc_node_priority(successor_node)
                 if s not in self.open and s not in self.close:
                     self.open.add(successor_node, successor_node_priority)
@@ -298,7 +300,7 @@ class UniformCostSearch(BestFirstSearch):
         self.name = "uniform cost search"
 
     def _calc_node_priority(self, node):
-        return node.g_value
+        return node.g_value + np.sum(node.board[:,1:-1])
 
 
 
