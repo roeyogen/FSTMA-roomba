@@ -217,6 +217,8 @@ class BestFirstSearch():
         self.name = "abstract best first search"
 
     def _calc_node_priority(self, node):
+        
+        # calc how clean board is
 
         return node.g_value
 
