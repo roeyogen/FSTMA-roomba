@@ -20,7 +20,7 @@ class Env(gym.Env):
     OUT = -100
     CHARGE = 100
 
-    def __init__(self, num_of_solar_panels=3, height=5, width=10, number_of_agents=2, max_fuel=100):
+    def __init__(self, num_of_solar_panels=3, height=5, width=10, number_of_agents=2, max_fuel=100, fixed_starting=None):
         super(Env, self).__init__()
 
         # Initialize the board
@@ -32,7 +32,7 @@ class Env(gym.Env):
         self.number_of_agents = number_of_agents
         self.charging_points = [(self.height // 2, column) for column in range(0, self.length, self.width + 1)]
         self.agents = {}
-        self.board, self.agents = self.reset()
+        self.board, self.agents = self.reset(fixed_starting)
 
         # Define action and observation space
         self.action = list(itertools.product(self.ACTIONS.keys(), repeat=number_of_agents))
@@ -42,21 +42,29 @@ class Env(gym.Env):
         self.observation_space = spaces.Box(low=self.OUT, high=self.CHARGE,
                                             shape=(self.height, self.length), dtype=np.float32)
 
-    def reset(self):
+    def reset(self,fixed_starting):
         """
         Important: the observation must be a numpy array
         :return: (np.array)
         """
         # Initialize the board
+
         self.board = np.full((self.height, self.length), 1, dtype=int)
         for column in range(0, self.length, self.width + 1):
             self.board[:, column] = self.OUT
             self.board[self.height // 2, column] = self.CHARGE
 
         # Initialize the agents positions
-        starting_points = random.sample([*self.charging_points], self.number_of_agents)
-        for i in range(self.number_of_agents):
-            self.agents['Agent_{}'.format(i + 1)] = [starting_points[i], self.max_fuel]
+        # Random positions
+        if fixed_starting is None:
+            starting_points = random.sample([*self.charging_points], self.number_of_agents)
+            for i in range(self.number_of_agents):
+                self.agents['Agent_{}'.format(i + 1)] = [starting_points[i], self.max_fuel]
+
+        # Fixed positions
+        else:
+            for i in range(self.number_of_agents):
+                self.agents['Agent_{}'.format(i + 1)] = [self.charging_points[fixed_starting[i]], self.max_fuel]
 
         return self.board, self.agents
 
