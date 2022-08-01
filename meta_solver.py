@@ -1,8 +1,10 @@
 import copy
+import pickle
 import time
 
 import numpy as np
 
+from environment import Env
 from offline_graph_path import UniformCostSearch, Graph, MetaGraph, Node
 
 
@@ -12,7 +14,7 @@ class metaSolver:
 
 
     def __init__(self,num_of_solar_panels=4, height=1, width=1,number_of_agents=2, max_agent_fuel={},
-                 fixed_starting=(0,3)):
+                 fixed_starting=(0,3),actions_file_path = None, costs_file_path=None):
 
         self.num_of_solar_panels = num_of_solar_panels
         self.height = height
@@ -24,29 +26,47 @@ class metaSolver:
         self.max_agent_fuel = max_agent_fuel
         self.fixed_starting = fixed_starting
 
+        single_costs = None
+        single_actions = None
 
-        single_costs, single_actions = self.calc_cost()
+        if actions_file_path and costs_file_path:
+            actions_file = open(actions_file_path, "rb")
+            single_actions = pickle.load(actions_file)
 
-        self.meta_graph = MetaGraph(num_of_solar_panels=num_of_solar_panels,height=height, width=width,
+            costs_file = open(costs_file_path, "rb")
+            single_costs = pickle.load(costs_file)
+        else:
+            single_costs, single_actions = self.calc_cost()
+
+        self.meta_graph = MetaGraph(num_of_solar_panels=num_of_solar_panels,height=1, width=1,
                                     number_of_agents=number_of_agents, max_agent_fuel=max_agent_fuel,
                                     costs=single_costs, fixed_starting=fixed_starting)
 
         ucs = UniformCostSearch()
         self.meta_solution = ucs.solve(self.meta_graph)
 
-        print(*self.meta_solution)
-        print("X")
+        print(*self.meta_solution.path)
 
         meta_actions,meta_starts = self.get_multi_action_path(self.meta_solution.path)
 
-        action_paths = {key: [] for key in meta_starts.keys()}
-
-
-
-
-
-
         # use meta path for performing single agent path
+
+        action_paths = self.get_action_path_per_agent(meta_starts,meta_actions,single_actions)
+
+        actions_list = self.get_action_per_timestep(action_paths)
+
+        env = Env(num_of_solar_panels=self.num_of_solar_panels, height=self.height,
+                  width=self.width, number_of_agents=self.number_of_agents, max_fuel=300, fixed_starting=self.fixed_starting)
+        env.render()
+        for a in actions_list:
+            print(f"Actions: Agent_1={a[0]}, Agent_2={a[1]}")  # , , Agent_3={actions[2]}, , Agent_4={actions[3]}, , Agent_5={actions[4]}, , Agent_6={actions[5]}")
+            env.step(a)
+            env.render()
+            if env.is_done():
+                print("success")
+                break
+
+        print(meta_starts)
 
 
 
@@ -72,10 +92,6 @@ class metaSolver:
             print(right_solution.solve_time)
             print(*right_solution.path)
 
-            # for state in right_solution.path:
-            #     print(state)
-            #     time.sleep(1)
-
             left_graph = Graph(self.height, self.width, self.max_agent_fuel['Agent_{}'.format(i + 1)],
                                 finishing_side='left')
             left_ucs = UniformCostSearch()
@@ -84,10 +100,6 @@ class metaSolver:
             print(left_solution.n_node_expanded)
             print(left_solution.solve_time)
             print(*left_solution.path)
-
-            # for state in left_solution.path:
-            #     print(state)
-            #     time.sleep(1)
 
             agent_costs['RIGHT_RIGHT'] = right_solution.cost
             agent_costs['LEFT_LEFT'] = right_solution.cost
@@ -104,8 +116,17 @@ class metaSolver:
             costs['Agent_{}'.format(i + 1)] = agent_costs
             actions['Agent_{}'.format(i + 1)] = agent_actions
 
-        return costs, actions
 
+
+        actions_file = open(f"{self.width}_BY_{self.height}_actions_per_agent.pkl", "wb")
+        pickle.dump(actions, actions_file)
+        actions_file.close()
+
+        costs_file = open(f"{self.width}_BY_{self.height}_costs_per_agent.pkl", "wb")
+        pickle.dump(costs, costs_file)
+        costs_file.close()
+
+        return costs, actions
 
     def reversed_actions(self,actions):
 
@@ -207,13 +228,47 @@ class metaSolver:
 
         return actions, starting_points
 
+    def get_action_path_per_agent(self,meta_starts,meta_actions,single_actions):
+        action_paths = {key: [] for key in meta_starts.keys()}
+
+        for agent, path in meta_actions.items():
+
+            for p in path:
+                action_paths[agent].append(single_actions[agent][p])
+
+        for agent, path in action_paths.items():
+            action_paths[agent] = sum(path, [])
+
+        return action_paths
+
+    def get_action_per_timestep(self,action_paths):
+
+        actions_list = []
+
+        lengths = [len(actions) for actions in action_paths.values()]
+
+        for i in range(max(lengths)):
+            joint_action = []
+            for agent_actions in action_paths.values():
+                to_append = agent_actions[i] if i < len(agent_actions) else 'STAY'
+                joint_action.append(to_append)
+
+            actions_list.append(joint_action)
+
+        return actions_list
+
+
 
 
 
 
 
 if __name__ == '__main__':
-
-    meta_solver = metaSolver(num_of_solar_panels=4, height=2, width=2,number_of_agents=2,
-                             max_agent_fuel={'Agent_1':20,'Agent_2':20}, fixed_starting=(0,3))
+    height = 3
+    width = 3
+    meta_solver = metaSolver(num_of_solar_panels=4, height=height, width=width,number_of_agents=2,
+                             max_agent_fuel={'Agent_1':20,'Agent_2':20}, fixed_starting=(0,3)
+                             ,actions_file_path=f"{width}_BY_{height}_actions_per_agent.pkl",
+                             costs_file_path=f"{width}_BY_{height}_costs_per_agent.pkl"
+                             )
 
