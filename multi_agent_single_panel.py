@@ -88,36 +88,35 @@ class Node:
         return path
 
 
-class MetaNode:
+class JointNode:
     OUT = -100
     CHARGE = 100
-    ACTIONS = {'STAY': None, 'RIGHT_RIGHT': None, 'RIGHT_LEFT': None, 'LEFT_LEFT': None, 'LEFT_RIGHT': None}
+    ACTIONS = {'STAY': None, 'UP': None, 'DOWN': None, 'RIGHT': None, 'LEFT': None}
 
-    def __init__(self, board, agents, parent=None, g_value=0, g_path=None):
+    def __init__(self, board, agents, parent=None, g_value=0):
 
         self.board = board
         self.height = board.shape[0]
-        self.width = 1
-        self.length = board.shape[1]
+        self.width = board.shape[1]
 
+        # agents = ["Agent_1": [[location], fuel, waiting], ... ]
         self.agents = agents
         self.number_of_agents = len(self.agents)
+        assert self.number_of_agents == 2
 
         self.parent = parent
         self.g_value = g_value
-        self.g_path = g_path if g_path is not None else {'Agent_{}'.format(i + 1):0 for i in range(self.number_of_agents)}
-        self.charging_points = [(0, column) for column in range(0, self.length, 2)]
+        self.charging_points = [(self.height // 2, 0), (self.height // 2, self.width - 1)]
 
         action_list = list(itertools.product(self.ACTIONS.keys(), repeat=self.number_of_agents))
         self.next = dict.fromkeys(action_list)
-
 
     def __repr__(self):
 
         res = ""
         for r in range(self.height):
             res += "|"
-            for c in range(self.length):
+            for c in range(self.width):
                 val = self.board[r, c]
                 if val == self.OUT:
                     res += " " + colored("=======".ljust(7), 'grey') + " |"  # format
@@ -139,10 +138,11 @@ class MetaNode:
     def is_goal(self):
 
         # check if all board is zeros (or charge / out)
-        to_compare = np.full((self.height, self.length), 0, dtype=int)
-        for column in range(0, self.length, self.width + 1):
-            to_compare[:, column] = self.OUT
-            to_compare[self.height // 2, column] = self.CHARGE
+        to_compare = np.full((self.height, self.width), 0, dtype=int)
+        to_compare[:, 0] = self.OUT
+        to_compare[self.height // 2, 0] = self.CHARGE
+        to_compare[:, -1] = self.OUT
+        to_compare[self.height // 2, -1] = self.CHARGE
 
         if not np.array_equal(to_compare, self.board):
             return False
@@ -152,10 +152,7 @@ class MetaNode:
             if tuple(self.agents['Agent_{}'.format(i + 1)][0]) not in self.charging_points:
                 return False
 
-
-
         return True
-
 
     def is_in_board(self, agent_loc):
 
@@ -171,6 +168,7 @@ class MetaNode:
             path = [current_node.parent] + path  # adding parent to beginning of the path
             current_node = current_node.parent
         return path
+
 
 class NodesPriorityQueue:
     def __init__(self):
@@ -285,85 +283,69 @@ class Graph:
         return node.next
 
 
-class MetaGraph:
-    ACTIONS = {'STAY': (0, 0), 'RIGHT_RIGHT': (0, 2), 'RIGHT_LEFT': (0, 0), 'LEFT_LEFT': (0, -2), 'LEFT_RIGHT': (0, 0)}
+class JointGraph:
+    ACTIONS = {'STAY': (0, 0), 'UP': (-1, 0), 'DOWN': (1, 0), 'RIGHT': (0, 1), 'LEFT': (0, -1)}
     OUT = -100
     CHARGE = 100
 
-    def __init__(self,num_of_solar_panels, height, width,number_of_agents=2, max_agent_fuel={},costs={},fixed_starting=None):
+    def __init__(self, height, width, max_agent_fuel={}, waiting={}):
 
-        self.num_of_solar_panels =num_of_solar_panels
         self.height = height
-        self.width = width
-        self.length = (self.width + 1) * self.num_of_solar_panels + 1
+        self.width = width + 2
 
-        self.number_of_agents = number_of_agents
-
+        self.number_of_agents = 2
         self.max_agent_fuel = max_agent_fuel
-        self.costs = costs
         self.agents = {}
-
-        self.charging_points = [(self.height // 2, column) for column in range(0, self.length, self.width + 1)]
+        self.waiting = waiting
+        self.charging_points = [(self.height // 2, 0), (self.height // 2, self.width - 1)]
 
         # create full board
-        board = np.full((self.height, self.length), 1, dtype=int)
-        for column in range(0, self.length, self.width + 1):
-            board[:, column] = self.OUT
-            board[self.height // 2, column] = self.CHARGE
-
-        # agent starts at left of board
-        #agent_loc = [self.height // 2, 0]
+        board = np.full((self.height, self.width), 1, dtype=int)
+        board[:, 0] = self.OUT
+        board[self.height // 2, 0] = self.CHARGE
+        board[:, self.width - 1] = self.OUT
+        board[self.height // 2, self.width - 1] = self.CHARGE
 
         # Initialize the agents positions
-        # Random positions
-        if fixed_starting is None:
-            starting_points = random.sample([*[list(x) for x in self.charging_points]], self.number_of_agents)
-            for i in range(self.number_of_agents):
-                self.agents['Agent_{}'.format(i + 1)] = [starting_points[i], self.max_agent_fuel['Agent_{}'.format(i + 1)]]
+        self.agents['Agent_1'] = [[self.height // 2, 0], self.max_agent_fuel['Agent_1'], self.waiting['Agent_1']]
+        self.agents['Agent_2'] = [[self.height // 2, self.width - 1], self.max_agent_fuel['Agent_2'], self.waiting['Agent_2']]
 
-        # Fixed positions
-        else:
-            for i in range(self.number_of_agents):
-                self.agents['Agent_{}'.format(i + 1)] = [self.charging_points[fixed_starting[i]], self.max_agent_fuel['Agent_{}'.format(i + 1)]]
+        self.head = JointNode(board=board, agents=self.agents)
 
-        self.head = MetaNode(board=board, agents=self.agents)
+    def is_in_board(self, board, agent_loc):
 
-
-    def is_in_board(self,board, agent_loc):
-
-        if 0 <= agent_loc[0] < self.height and 0 <= agent_loc[1] < self.length and \
+        if 0 <= agent_loc[0] < self.height and 0 <= agent_loc[1] < self.width and \
                 not board[agent_loc] == self.OUT:
             return True
         return False
 
-    def is_legal_step(self,board,new_agents,action):
+    def is_legal_step(self, board, agents ,new_agents, action):
         locs = [tuple(x[0]) for x in new_agents.values()]
 
         # check no overlap
         if not len(set(locs)) == len(locs):
             return False
 
-        for i,loc in enumerate(locs):
+        for i, loc in enumerate(locs):
             # check in in_board
-            if not self.is_in_board(board,loc):
+            if not self.is_in_board(board, loc):
                 return False
-            if action[i] == "RIGHT_LEFT" and loc == (0,self.length-1):
+            if not action[i] == "STAY" and agents["Agent_{}".format(i + 1)][2] > 0:
                 return False
-            if action[i] == "LEFT_RIGHT" and loc == (0,0):
-                return False
-
 
         return True
 
     def successor(self, node):
 
         # cannot move - out of fuel
-        #if node.agent_fuel == 0:
-        #   return None
+        if any([agent[1] == 0 for agent in node.agents.values()]):
+            return None
 
         for action, index in node.next.items():
 
             new_agents = {}
+            new_board = copy.deepcopy(node.board)
+            is_in_board = True
 
             for i in range(self.number_of_agents):
 
@@ -372,49 +354,36 @@ class MetaGraph:
 
                 x += self.ACTIONS[action[i]][0]
                 y += self.ACTIONS[action[i]][1]
-                new_pos = [x,y]
-                new_fuel = self.agents['Agent_{}'.format(i + 1)][1]
+                new_pos = [x, y]
 
-                new_agents['Agent_{}'.format(i + 1)] = [new_pos,new_fuel]
+                if not node.is_in_board(new_pos):
+                    is_in_board = False
+                    break
 
+                # reduce value from where I stood -  if not charging point
+                if new_board[tuple(node.agents['Agent_{}'.format(i + 1)][0])] != self.CHARGE:
+                    new_board[tuple(node.agents['Agent_{}'.format(i + 1)][0])] =\
+                        max(0, new_board[tuple(node.agents['Agent_{}'.format(i + 1)][0])] - 1)
 
+                if tuple(new_pos) in self.charging_points:
+                    new_fuel = self.max_agent_fuel['Agent_{}'.format(i + 1)]
+                else:
+                    new_fuel = node.agents['Agent_{}'.format(i + 1)][1] - 1
 
-            if self.is_legal_step(node.board,new_agents,action):
+                new_waiting = max(0, node.agents['Agent_{}'.format(i + 1)][2] - 1)
 
-                new_board = copy.deepcopy(node.board)
+                new_agents['Agent_{}'.format(i + 1)] = [new_pos, new_fuel, new_waiting]
 
-                #total_cost = 0
+            if not is_in_board:
+                continue
 
-                new_g_path = copy.deepcopy(node.g_path)
+            if self.is_legal_step(node.board, node.agents, new_agents, action):
 
-                # mark "clean" panel
-                for i in range(self.number_of_agents):
-
-                    # reduce value for transition
-                    mid_pos = copy.deepcopy(new_agents['Agent_{}'.format(i + 1)][0])
-                    if action[i] == "RIGHT_RIGHT" or action[i] == "LEFT_RIGHT":
-                        mid_pos[1] -= 1
-                    elif action[i] == "RIGHT_LEFT" or action[i] == "LEFT_LEFT":
-                        mid_pos[1] += 1
-                    else:
-                        #total_cost += self.costs['Agent_{}'.format(i + 1)][action[i]]
-                        new_g_path['Agent_{}'.format(i + 1)] += self.costs['Agent_{}'.format(i + 1)][action[i]]
-                        continue
-
-                    mid_pos = tuple(mid_pos)
-                    new_board[mid_pos] = max(0,new_board[mid_pos]-1)
-                    #total_cost += self.costs['Agent_{}'.format(i + 1)][action[i]]
-                    new_g_path['Agent_{}'.format(i + 1)] += self.costs['Agent_{}'.format(i + 1)][action[i]]
-
-                #if new_board[tuple(new_pos)] == self.CHARGE:
-                #    new_fuel = self.max_agent_fuel
-
-                max_cost = max(new_g_path.values())
-                new_node = MetaNode(new_board, new_agents, node, max_cost,new_g_path)
-
+                new_node = JointNode(new_board, new_agents, node, node.g_value + 1)
                 node.next[action] = new_node
 
         return node.next
+
 
 class GraphSearchSolution:
     def __init__(self, final_node: Node, solve_time: float, n_node_expanded: int, init_heuristic_time=None,
@@ -493,7 +462,7 @@ class BestFirstSearch:
                 if s is None:
                     continue
                 successor_node = s
-                #print(s)
+                # print(s)
                 successor_node_priority = self._calc_node_priority(successor_node)
                 if s not in self.open and s not in self.close:
                     self.open.add(successor_node, successor_node_priority)
@@ -566,31 +535,25 @@ def get_multi_action_path(path):
                 changed_LEFT_RIGHT = new_loc[agent][1]-1
                 x_loc = new_loc[agent][0]
 
-                if abs(new_board[(x_loc,changed_RIGHT_LEFT)] - prev_board[(x_loc,changed_RIGHT_LEFT)]) == 1 \
+                if abs(new_board[(x_loc, changed_RIGHT_LEFT)] - prev_board[(x_loc, changed_RIGHT_LEFT)]) == 1 \
                         and changed_RIGHT_LEFT < new_board.shape[1]:
                     actions[agent].append('RIGHT_LEFT')
-                if abs(new_board[(x_loc,changed_LEFT_RIGHT)] - prev_board[(x_loc,changed_LEFT_RIGHT)]) == 1 \
-                        and changed_LEFT_RIGHT >=0:
+                if abs(new_board[(x_loc, changed_LEFT_RIGHT)] - prev_board[(x_loc, changed_LEFT_RIGHT)]) == 1 \
+                        and changed_LEFT_RIGHT >= 0:
                     actions[agent].append('LEFT_RIGHT')
 
 
         prev_loc = new_loc
         prev_board = new_board
 
-    return actions,starting_points
+    return actions, starting_points
+
 
 if __name__ == '__main__':
 
-    #costs = {'STAY': 1, 'RIGHT_RIGHT': 5, 'RIGHT_LEFT': 6, 'LEFT_LEFT': 5, 'LEFT_RIGHT': 6}
-    #costs = {'STAY': 1, 'RIGHT_RIGHT': 1, 'RIGHT_LEFT': 1, 'LEFT_LEFT': 1, 'LEFT_RIGHT': 1}
-
-    costs = {'Agent_1': {'STAY': 1, 'RIGHT_RIGHT': 5, 'RIGHT_LEFT': 6, 'LEFT_LEFT': 5, 'LEFT_RIGHT': 6},
-                    'Agent_2': {'STAY': 1, 'RIGHT_RIGHT': 5, 'RIGHT_LEFT': 6, 'LEFT_LEFT': 5, 'LEFT_RIGHT': 6}}
-
-    max_agent_fuel = {"Agent_1": 20, "Agent_2": 20}
-
-    graph = MetaGraph(num_of_solar_panels=4, height=1, width=1,number_of_agents=2, max_agent_fuel=max_agent_fuel,
-                      costs=costs,fixed_starting=(0,3))
+    max_agent_fuel = {"Agent_1": 30, "Agent_2": 30}
+    waiting = {"Agent_1": 2, "Agent_2": 0}
+    graph = JointGraph(height=5, width=4, max_agent_fuel=max_agent_fuel, waiting=waiting)
 
     ucs = UniformCostSearch()
     solution = ucs.solve(graph)
@@ -605,57 +568,6 @@ if __name__ == '__main__':
     print(solution.cost)
     print(solution.n_node_expanded)
     print(solution.solve_time)
-
-    meta_actions,meta_starts = get_multi_action_path(solution.path)
-
-
-    single_actions =  {'Agent_1': {'STAY': None,
-                                 'RIGHT_RIGHT': ['RIGHT', 'UP', 'RIGHT', 'DOWN', 'RIGHT'],
-                                 'RIGHT_LEFT': ['RIGHT', 'UP', 'RIGHT', 'DOWN', 'LEFT', 'LEFT'],
-                                 'LEFT_LEFT': ['LEFT', 'UP', 'LEFT', 'DOWN', 'LEFT'],
-                                 'LEFT_RIGHT': ['LEFT', 'UP', 'LEFT', 'DOWN', 'RIGHT', 'RIGHT']},
-                     'Agent_2': {'STAY': None,
-                                 'RIGHT_RIGHT': ['RIGHT', 'UP', 'RIGHT', 'DOWN', 'RIGHT'],
-                                 'RIGHT_LEFT': ['RIGHT', 'UP', 'RIGHT', 'DOWN', 'LEFT', 'LEFT'],
-                                 'LEFT_LEFT': ['LEFT', 'UP', 'LEFT', 'DOWN', 'LEFT'],
-                                 'LEFT_RIGHT': ['LEFT', 'UP', 'LEFT', 'DOWN', 'RIGHT', 'RIGHT']}}
-    single_costs = {'Agent_1': {'STAY': 1, 'RIGHT_RIGHT': 5, 'RIGHT_LEFT': 6, 'LEFT_LEFT': 5, 'LEFT_RIGHT': 6},
-                    'Agent_2': {'STAY': 1, 'RIGHT_RIGHT': 5, 'RIGHT_LEFT': 6, 'LEFT_LEFT': 5, 'LEFT_RIGHT': 6}}
-
-    action_paths = {key: [] for key in meta_starts.keys()}
-
-    for agent,path in meta_actions.items():
-
-        for p in path:
-            action_paths[agent].append(single_actions[agent][p])
-
-    for agent, path in action_paths.items():
-
-        action_paths[agent] = sum(path,[])
-
-    actions_list = []
-
-    lengths = [len(actions) for actions in action_paths.values()]
-
-    for i in range(max(lengths)):
-        joint_action = []
-        for agent_actions in action_paths.values():
-            to_append = agent_actions[i] if i < len(agent_actions) else 'STAY'
-            joint_action.append(to_append)
-
-        actions_list.append(joint_action)
-
-    env = Env(num_of_solar_panels=4, height=2, width=2, number_of_agents=2, max_fuel=20, fixed_starting=[0, 3])
-    env.render()
-    for a in actions_list:
-        print(f"Actions: Agent_1={a[0]}, Agent_2={a[1]}")  # , , Agent_3={actions[2]}, , Agent_4={actions[3]}, , Agent_5={actions[4]}, , Agent_6={actions[5]}")
-        env.step(a)
-        env.render()
-        if env.is_done():
-            print("success")
-            break
-
-    print(meta_starts)
 
 
 
