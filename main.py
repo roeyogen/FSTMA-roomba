@@ -62,8 +62,24 @@ if __name__ == '__main__':
 
     #metaMain()
 
-    env = Env(num_of_solar_panels=3, height=3, width=3, number_of_agents=2, max_fuel=10, fixed_starting=None)
-    env.render()
+    # env = Env(num_of_solar_panels=3, height=3, width=3, number_of_agents=2, max_fuel=10, fixed_starting=None)
+    # env.render()
+
+    graph = Graph(height=3, width=3, max_agent_fuel=20, finishing_side="right")
+
+    ucs = UniformCostSearch()
+    solution = ucs.solve(graph)
+
+    # print(*solution.path)
+
+    for state in solution.path:
+        print(state)
+        time.sleep(0.5)
+
+
+    print(solution.cost)
+    print(solution.n_node_expanded)
+    print(solution.solve_time)
 
 
 

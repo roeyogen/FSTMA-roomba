@@ -133,7 +133,11 @@ class MetaNode:
                     else:
                         res += " " + ("   " + str(val) + "   ").ljust(7) + " |"  # format
             res += "\n"
-        return res +"\nagents_fuel = "+str([v[1] for v in self.agents.values()])
+
+        res += "agent \t\tlocation \t\tfuel\n"
+        for agent, value in self.agents.items():
+            res += agent + "\t\t" + str(value[0]) + "\t\t\t" + str(value[1]) +"\n"
+        return res
 
     def is_goal(self):
 
@@ -607,62 +611,61 @@ if __name__ == '__main__':
     for state in solution.path:
         print(state)
         time.sleep(0.5)
-        print(state.agents)
 
     print(solution.cost)
     print(solution.n_node_expanded)
     print(solution.solve_time)
 
-    meta_actions,meta_starts = get_multi_action_path(solution.path)
-
-
-    single_actions =  {'Agent_1': {'STAY': None,
-                                 'RIGHT_RIGHT': ['RIGHT', 'UP', 'RIGHT', 'DOWN', 'RIGHT'],
-                                 'RIGHT_LEFT': ['RIGHT', 'UP', 'RIGHT', 'DOWN', 'LEFT', 'LEFT'],
-                                 'LEFT_LEFT': ['LEFT', 'UP', 'LEFT', 'DOWN', 'LEFT'],
-                                 'LEFT_RIGHT': ['LEFT', 'UP', 'LEFT', 'DOWN', 'RIGHT', 'RIGHT']},
-                     'Agent_2': {'STAY': None,
-                                 'RIGHT_RIGHT': ['RIGHT', 'UP', 'RIGHT', 'DOWN', 'RIGHT'],
-                                 'RIGHT_LEFT': ['RIGHT', 'UP', 'RIGHT', 'DOWN', 'LEFT', 'LEFT'],
-                                 'LEFT_LEFT': ['LEFT', 'UP', 'LEFT', 'DOWN', 'LEFT'],
-                                 'LEFT_RIGHT': ['LEFT', 'UP', 'LEFT', 'DOWN', 'RIGHT', 'RIGHT']}}
-    single_costs = {'Agent_1': {'STAY': 1, 'RIGHT_RIGHT': 5, 'RIGHT_LEFT': 6, 'LEFT_LEFT': 5, 'LEFT_RIGHT': 6},
-                    'Agent_2': {'STAY': 1, 'RIGHT_RIGHT': 5, 'RIGHT_LEFT': 6, 'LEFT_LEFT': 5, 'LEFT_RIGHT': 6}}
-
-    action_paths = {key: [] for key in meta_starts.keys()}
-
-    for agent,path in meta_actions.items():
-
-        for p in path:
-            action_paths[agent].append(single_actions[agent][p])
-
-    for agent, path in action_paths.items():
-
-        action_paths[agent] = sum(path,[])
-
-    actions_list = []
-
-    lengths = [len(actions) for actions in action_paths.values()]
-
-    for i in range(max(lengths)):
-        joint_action = []
-        for agent_actions in action_paths.values():
-            to_append = agent_actions[i] if i < len(agent_actions) else 'STAY'
-            joint_action.append(to_append)
-
-        actions_list.append(joint_action)
-
-    env = Env(num_of_solar_panels=4, height=2, width=2, number_of_agents=2, max_fuel=20, fixed_starting=[0, 3])
-    env.render()
-    for a in actions_list:
-        print(f"Actions: Agent_1={a[0]}, Agent_2={a[1]}")  # , , Agent_3={actions[2]}, , Agent_4={actions[3]}, , Agent_5={actions[4]}, , Agent_6={actions[5]}")
-        env.step(a)
-        env.render()
-        if env.is_done():
-            print("success")
-            break
-
-    print(meta_starts)
+    # meta_actions,meta_starts = get_multi_action_path(solution.path)
+    #
+    #
+    # single_actions =  {'Agent_1': {'STAY': None,
+    #                              'RIGHT_RIGHT': ['RIGHT', 'UP', 'RIGHT', 'DOWN', 'RIGHT'],
+    #                              'RIGHT_LEFT': ['RIGHT', 'UP', 'RIGHT', 'DOWN', 'LEFT', 'LEFT'],
+    #                              'LEFT_LEFT': ['LEFT', 'UP', 'LEFT', 'DOWN', 'LEFT'],
+    #                              'LEFT_RIGHT': ['LEFT', 'UP', 'LEFT', 'DOWN', 'RIGHT', 'RIGHT']},
+    #                  'Agent_2': {'STAY': None,
+    #                              'RIGHT_RIGHT': ['RIGHT', 'UP', 'RIGHT', 'DOWN', 'RIGHT'],
+    #                              'RIGHT_LEFT': ['RIGHT', 'UP', 'RIGHT', 'DOWN', 'LEFT', 'LEFT'],
+    #                              'LEFT_LEFT': ['LEFT', 'UP', 'LEFT', 'DOWN', 'LEFT'],
+    #                              'LEFT_RIGHT': ['LEFT', 'UP', 'LEFT', 'DOWN', 'RIGHT', 'RIGHT']}}
+    # single_costs = {'Agent_1': {'STAY': 1, 'RIGHT_RIGHT': 5, 'RIGHT_LEFT': 6, 'LEFT_LEFT': 5, 'LEFT_RIGHT': 6},
+    #                 'Agent_2': {'STAY': 1, 'RIGHT_RIGHT': 5, 'RIGHT_LEFT': 6, 'LEFT_LEFT': 5, 'LEFT_RIGHT': 6}}
+    #
+    # action_paths = {key: [] for key in meta_starts.keys()}
+    #
+    # for agent,path in meta_actions.items():
+    #
+    #     for p in path:
+    #         action_paths[agent].append(single_actions[agent][p])
+    #
+    # for agent, path in action_paths.items():
+    #
+    #     action_paths[agent] = sum(path,[])
+    #
+    # actions_list = []
+    #
+    # lengths = [len(actions) for actions in action_paths.values()]
+    #
+    # for i in range(max(lengths)):
+    #     joint_action = []
+    #     for agent_actions in action_paths.values():
+    #         to_append = agent_actions[i] if i < len(agent_actions) else 'STAY'
+    #         joint_action.append(to_append)
+    #
+    #     actions_list.append(joint_action)
+    #
+    # env = Env(num_of_solar_panels=4, height=2, width=2, number_of_agents=2, max_fuel=20, fixed_starting=[0, 3])
+    # env.render()
+    # for a in actions_list:
+    #     print(f"Actions: Agent_1={a[0]}, Agent_2={a[1]}")  # , , Agent_3={actions[2]}, , Agent_4={actions[3]}, , Agent_5={actions[4]}, , Agent_6={actions[5]}")
+    #     env.step(a)
+    #     env.render()
+    #     if env.is_done():
+    #         print("success")
+    #         break
+    #
+    # print(meta_starts)
 
 
 
