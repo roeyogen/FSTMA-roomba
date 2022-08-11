@@ -157,9 +157,11 @@ class Env(gym.Env):
                     else:
                         res += " " + ("   "+ str(val)+ "   ").ljust(7) + " |"  # format
             res += "\n"
-        print(res)
-
-        print([agent[1] for agent in self.agents.values()])
+        print(res, end="")
+        
+        
+        print(*[agent + " location: " + value[0] for agent,value in self.agents.items()])
+        print(*[agent + " fuel: " + value[1] for agent,value in self.agents.items()])
 
     def close(self):
         pass
