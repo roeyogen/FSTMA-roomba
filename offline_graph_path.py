@@ -48,7 +48,7 @@ class Node:
                     else:
                         res += " " + ("   " + str(val) + "   ").ljust(7) + " |"  # format
             res += "\n"
-        return "\n" + res +"\nagent_fuel = "+str(self.agent_fuel)
+        return res +"\nagent_fuel = "+str(self.agent_fuel)
 
     def is_goal(self):
 
@@ -133,7 +133,7 @@ class MetaNode:
                     else:
                         res += " " + ("   " + str(val) + "   ").ljust(7) + " |"  # format
             res += "\n"
-        return "\n" + res +"\nagents_fuel = "+str([v[1] for v in self.agents.values()])
+        return res +"\nagents_fuel = "+str([v[1] for v in self.agents.values()])
 
     def is_goal(self):
 
