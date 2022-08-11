@@ -111,7 +111,6 @@ class MetaNode:
         action_list = list(itertools.product(self.ACTIONS.keys(), repeat=self.number_of_agents))
         self.next = dict.fromkeys(action_list)
 
-
     def __repr__(self):
 
         res = ""
@@ -324,7 +323,7 @@ class MetaGraph:
         # Fixed positions
         else:
             for i in range(self.number_of_agents):
-                self.agents['Agent_{}'.format(i + 1)] = [self.charging_points[fixed_starting[i]], self.max_agent_fuel['Agent_{}'.format(i + 1)]]
+                self.agents['Agent_{}'.format(i + 1)] = [list(self.charging_points[fixed_starting[i]]), self.max_agent_fuel['Agent_{}'.format(i + 1)]]
 
         self.head = MetaNode(board=board, agents=self.agents)
 
@@ -336,22 +335,31 @@ class MetaGraph:
             return True
         return False
 
-    def is_legal_step(self,board,new_agents,action):
+    def is_legal_step(self, board, new_agents, action, node):
         locs = [tuple(x[0]) for x in new_agents.values()]
-
+        locs2 = [tuple(x[0]) for x in node.agents.values()]
         # check no overlap
         if not len(set(locs)) == len(locs):
             return False
 
-        for i,loc in enumerate(locs):
+        for i, loc in enumerate(locs):
             # check in in_board
-            if not self.is_in_board(board,loc):
+            if not self.is_in_board(board, loc):
                 return False
-            if action[i] == "RIGHT_LEFT" and loc == (0,self.length-1):
+            if action[i] == "RIGHT_LEFT" and loc == (0, self.length-1):
                 return False
-            if action[i] == "LEFT_RIGHT" and loc == (0,0):
+            if action[i] == "LEFT_RIGHT" and loc == (0, 0):
                 return False
 
+        for i, loc in enumerate(locs2):
+            if action[i] == "RIGHT_LEFT":
+                for i2, loc2 in enumerate(locs2):
+                    if action[i2] == "LEFT_RIGHT" and loc2[1] == loc[1] + 2:
+                        return False
+            if action[i] == "LEFT_RIGHT":
+                for i2, loc2 in enumerate(locs2):
+                    if action[i2] == "RIGHT_LEFT" and loc2[1] == loc[1] - 2:
+                        return False
 
         return True
 
@@ -372,14 +380,13 @@ class MetaGraph:
 
                 x += self.ACTIONS[action[i]][0]
                 y += self.ACTIONS[action[i]][1]
-                new_pos = [x,y]
-                new_fuel = self.agents['Agent_{}'.format(i + 1)][1]
+                new_pos = [x, y]
+                new_fuel = node.agents['Agent_{}'.format(i + 1)][1]
 
-                new_agents['Agent_{}'.format(i + 1)] = [new_pos,new_fuel]
+                new_agents['Agent_{}'.format(i + 1)] = [new_pos, new_fuel]
 
 
-
-            if self.is_legal_step(node.board,new_agents,action):
+            if self.is_legal_step(node.board,new_agents,action, node):
 
                 new_board = copy.deepcopy(node.board)
 

@@ -81,8 +81,16 @@ class metaSolver:
 
         costs = {}
         actions = {}
-
+        agent_fuel_calc = {}
         for i in range(self.number_of_agents):
+            my_fuel = self.max_agent_fuel["Agent_{}".format(i + 1)]
+            if my_fuel in agent_fuel_calc.keys():
+                costs["Agent_{}".format(i + 1)] = copy.deepcopy(costs[agent_fuel_calc[my_fuel]])
+                actions["Agent_{}".format(i + 1)] = copy.deepcopy(actions[agent_fuel_calc[my_fuel]])
+                continue
+            else:
+                agent_fuel_calc[my_fuel] = "Agent_{}".format(i + 1)
+
             agent_costs = {'STAY': 1, 'RIGHT_RIGHT': None, 'RIGHT_LEFT': None, 'LEFT_LEFT': None, 'LEFT_RIGHT': None}
 
             agent_actions = {'STAY': None, 'RIGHT_RIGHT': None, 'RIGHT_LEFT': None, 'LEFT_LEFT': None,
@@ -177,6 +185,7 @@ class metaSolver:
 
     def get_multi_action_path(self, path):
 
+
         actions = {}
         starting_points = {}
 
@@ -227,6 +236,8 @@ class metaSolver:
 
         return actions, starting_points
 
+
+
     @staticmethod
     def get_action_path_per_agent(meta_starts, meta_actions, single_actions):
         action_paths = {key: [] for key in meta_starts.keys()}
@@ -260,12 +271,12 @@ class metaSolver:
 
 
 if __name__ == '__main__':
-    num_of_solar_panels = 6
-    height = 3
-    width = 3
-    number_of_agents = 3
-    max_agent_fuel = {'Agent_1': 20, 'Agent_2': 20, 'Agent_3': 20}
-    fixed_starting = None
+    num_of_solar_panels = 3
+    height = 5
+    width = 2
+    number_of_agents = 2
+    max_agent_fuel = {'Agent_1': 20, 'Agent_2': 20}
+    fixed_starting = (0, 3)
 
     actions_file_path = "pickles/" + f"{height}_BY_{width}_actions_for_{str(max_agent_fuel).replace(': ', '_')}.pkl"
     costs_file_path = "pickles/" + f"{height}_BY_{width}_costs_for_{str(max_agent_fuel).replace(': ', '_')}.pkl"
