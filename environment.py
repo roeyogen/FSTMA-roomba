@@ -160,8 +160,8 @@ class Env(gym.Env):
         print(res, end="")
         
         
-        print(*[agent + " location: " + value[0] for agent,value in self.agents.items()])
-        print(*[agent + " fuel: " + value[1] for agent,value in self.agents.items()])
+        print(*[agent + " location: " + str(value[0]) for agent,value in self.agents.items()])
+        print(*[agent + " fuel: " + str(value[1]) for agent,value in self.agents.items()])
 
     def close(self):
         pass
