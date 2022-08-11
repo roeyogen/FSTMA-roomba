@@ -67,8 +67,11 @@ class metaSolver:
                   fixed_starting=list(meta_starts.values()))
         env.render()
         for a in actions_list:
-            to_print = ["Agent_{}={}".format(i + 1, a[i]) for i in range(len(a))]
-            print(f"Actions: " + str(to_print))  # , , Agent_3={actions[2]}, , Agent_4={actions[3]}, , Agent_5={actions[4]}, , Agent_6={actions[5]}")
+            to_print = ["Agent_{} = {}".format(i + 1, a[i]) for i in range(len(a))]
+            print("Actions: ")
+            for act in to_print:
+                print(act)
+            print()
             env.step(a)
             env.render()
             if env.is_done():
