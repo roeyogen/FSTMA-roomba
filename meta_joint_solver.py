@@ -101,8 +101,11 @@ class metaJointSolver:
                   fixed_starting=list(meta_starts.values()))
         env.render()
         for a in actions_list:
-            to_print = ["Agent_{}={}".format(i + 1, a[i]) for i in range(len(a))]
-            print(f"Actions: " + str(to_print))  # , , Agent_3={actions[2]}, , Agent_4={actions[3]}, , Agent_5={actions[4]}, , Agent_6={actions[5]}")
+            to_print = ["Agent_{} = {}".format(i + 1, a[i]) for i in range(len(a))]
+            print("Actions: ")
+            for act in to_print:
+                print(act)
+            print() # , , Agent_3={actions[2]}, , Agent_4={actions[3]}, , Agent_5={actions[4]}, , Agent_6={actions[5]}")
             env.step(a)
             env.render()
             if env.is_done():
@@ -326,80 +329,6 @@ class metaJointSolver:
 
     def get_multi_action_path(self, path):
 
-        """
-        actions = {}
-        starting_points = {}
-
-        prev_loc = {}
-
-        prev_g_path = {}
-
-        for agent, [location, fuel] in path[0].agents.items():
-            prev_loc[agent] = location
-            actions[agent] = []
-            prev_g_path[agent] = path[0].g_path[agent]
-
-        starting_points = copy.deepcopy(prev_loc)
-        # starting_points = tuple([x[1]//2 for x in starting_points.values()])
-        for k, v in starting_points.items():
-            starting_points[k] = v[1]//2
-        prev_board = path[0].board
-
-        for p in path[1:]:
-
-            new_loc = {}
-
-            new_board = p.board
-
-            for agent, [location, fuel] in p.agents.items():
-
-                new_loc[agent] = location
-
-                diff_y = new_loc[agent][1] - prev_loc[agent][1]
-
-                diff_g_path = p.g_path[agent] - prev_g_path[agent]
-
-                joint_cleaning = diff_g_path < self.height*self.width
-
-                if diff_y == 0 and np.array_equal(prev_board, new_board):
-                    actions[agent].append('STAY')
-                elif diff_y == 2:
-                    if joint_cleaning:
-                        actions[agent].append('JRR')
-                    else:
-                        actions[agent].append('RIGHT_RIGHT')
-                elif diff_y == -2:
-                    if joint_cleaning:
-                        actions[agent].append('JLL')
-                    else:
-                        actions[agent].append('LEFT_LEFT')
-                elif diff_y == 0:
-                    changed_RIGHT_LEFT = new_loc[agent][1] + 1
-                    changed_LEFT_RIGHT = new_loc[agent][1] - 1
-                    x_loc = new_loc[agent][0]
-
-                    if joint_cleaning:
-                        if abs(new_board[(x_loc, changed_RIGHT_LEFT)] - prev_board[(x_loc, changed_RIGHT_LEFT)]) == 1 \
-                                and changed_RIGHT_LEFT < new_board.shape[1]:
-                            actions[agent].append('RIGHT_LEFT')
-                        if abs(new_board[(x_loc, changed_LEFT_RIGHT)] - prev_board[(x_loc, changed_LEFT_RIGHT)]) == 1 \
-                                and changed_LEFT_RIGHT >= 0:
-                            actions[agent].append('LEFT_RIGHT')
-                    else:
-                        if abs(new_board[(x_loc, changed_RIGHT_LEFT)] - prev_board[
-                            (x_loc, changed_RIGHT_LEFT)]) == 1 \
-                                and changed_RIGHT_LEFT < new_board.shape[1]:
-                            actions[agent].append('JRL')
-                        if abs(new_board[(x_loc, changed_LEFT_RIGHT)] - prev_board[
-                            (x_loc, changed_LEFT_RIGHT)]) == 1 \
-                                and changed_LEFT_RIGHT >= 0:
-                            actions[agent].append('JLR')
-
-            prev_loc = new_loc
-            prev_board = new_board
-            prev_g_path = copy.deepcopy(p.g_path)
-        """
-
         actions = []
         starting_points = {}
         for agent, [location, fuel] in path[0].agents.items():
@@ -486,7 +415,7 @@ class metaJointSolver:
 
 if __name__ == '__main__':
     num_of_solar_panels = 4
-    height = 3
+    height = 2
     width = 2
     number_of_agents = 2
     max_agent_fuel = {'Agent_1': 20, 'Agent_2': 20}

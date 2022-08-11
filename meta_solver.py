@@ -50,7 +50,6 @@ class metaSolver:
         for state in self.meta_solution.path:
             print(state)
             time.sleep(0.5)
-            print(state.agents)
         # print(*self.meta_solution.path)
 
         meta_actions, meta_starts = self.get_multi_action_path(self.meta_solution.path)

@@ -266,7 +266,7 @@ class MetaJointNode:
                         res += " " + colored("".ljust(7), 'white') + " |"  # format
                     else:
                         res += " " + ("   " + str(val) + "   ").ljust(7) + " |"  # format
-            res += "Agent: \t\tLocation: \tFuel: \tCost:\n"
+        res += "\nAgent: \t\tLocation: \tFuel: \tCost:\n"
         for agent, value in self.agents.items():
             res += agent + "\t\t " + str(value[0]) + "\t\t " + str(value[1]) + \
                    "\t " + str(self.g_path[agent]) + "\n"
@@ -908,10 +908,41 @@ def get_multi_action_path(path):
 
 if __name__ == '__main__':
 
+    # max_agent_fuel = {"Agent_1": 30, "Agent_2": 30}
+    # waiting = {"Agent_1": 1, "Agent_2": 0}
+    # swapped = False
+    # graph = JointGraph(height=3, width=3, max_agent_fuel=max_agent_fuel, waiting=waiting, swapped=swapped)
+    #
+    # ucs = UniformCostSearch()
+    # solution = ucs.solve(graph)
+    #
+    # #print(*solution.path)
+    #
+    # for state in solution.path:
+    #     print(state)
+    #     time.sleep(0.5)
+    #
+    # print(solution.cost)
+    # print(solution.number_of_steps)
+    # print(solution.n_node_expanded)
+    # print(solution.solve_time)
+
+    costs = {'Agent_1': {'STAY': 1, 'RIGHT_RIGHT': 5, 'RIGHT_LEFT': 6, 'LEFT_LEFT': 5, 'LEFT_RIGHT': 6,
+                         'JRR': {0: 3, 1: 3},
+                         'JRL': {0: 4, 1: 4},
+                         'JLL': {0: 5, 1: 5},
+                         'JLR': {0: 4, 1: 4} },
+             'Agent_2': {'STAY': 1, 'RIGHT_RIGHT': 5, 'RIGHT_LEFT': 6, 'LEFT_LEFT': 5, 'LEFT_RIGHT': 6,
+                         'JRR': {0: 3, 1: 3},
+                         'JRL': {0: 4, 1: 4},
+                         'JLL': {0: 5, 1: 5},
+                         'JLR': {0: 4, 1: 4}}}
+
     max_agent_fuel = {"Agent_1": 30, "Agent_2": 30}
-    waiting = {"Agent_1": 1, "Agent_2": 0}
-    swapped = False
-    graph = JointGraph(height=2, width=2, max_agent_fuel=max_agent_fuel, waiting=waiting, swapped=swapped)
+    num_of_solar_panels = 3
+    fixed_starting = (0, 3)
+    graph = MetaJointGraph(num_of_solar_panels=num_of_solar_panels, number_of_agents=2,
+                           max_agent_fuel=max_agent_fuel, costs=costs, fixed_starting=fixed_starting)
 
     ucs = UniformCostSearch()
     solution = ucs.solve(graph)
@@ -926,38 +957,6 @@ if __name__ == '__main__':
     print(solution.number_of_steps)
     print(solution.n_node_expanded)
     print(solution.solve_time)
-
-    # costs = {'Agent_1': {'STAY': 1, 'RIGHT_RIGHT': 5, 'RIGHT_LEFT': 6, 'LEFT_LEFT': 5, 'LEFT_RIGHT': 6,
-    #                      'JRR': {0: 3, 1: 3},
-    #                      'JRL': {0: 4, 1: 4},
-    #                      'JLL': {0: 5, 1: 5},
-    #                      'JLR': {0: 4, 1: 4} },
-    #          'Agent_2': {'STAY': 1, 'RIGHT_RIGHT': 5, 'RIGHT_LEFT': 6, 'LEFT_LEFT': 5, 'LEFT_RIGHT': 6,
-    #                      'JRR': {0: 3, 1: 3},
-    #                      'JRL': {0: 4, 1: 4},
-    #                      'JLL': {0: 5, 1: 5},
-    #                      'JLR': {0: 4, 1: 4}}}
-    #
-    # max_agent_fuel = {"Agent_1": 30, "Agent_2": 30}
-    # num_of_solar_panels = 3
-    # fixed_starting = (0, 3)
-    # graph = MetaJointGraph(num_of_solar_panels=num_of_solar_panels, number_of_agents=2,
-    #                        max_agent_fuel=max_agent_fuel, costs=costs, fixed_starting=fixed_starting)
-    #
-    # ucs = UniformCostSearch()
-    # solution = ucs.solve(graph)
-    #
-    # #print(*solution.path)
-    #
-    # for state in solution.path:
-    #     print(state)
-    #     time.sleep(0.5)
-    #     print(state.agents)
-    #
-    # print(solution.cost)
-    # print(solution.number_of_steps)
-    # print(solution.n_node_expanded)
-    # print(solution.solve_time)
 
 
 
