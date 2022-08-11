@@ -7,6 +7,7 @@ import math
 import time
 
 from meta_environment import MetaEnv
+from meta_solver import metaSolver
 from offline_graph_path import Graph, UniformCostSearch
 
 ACTIONS = {'STAY', 'RIGHT', 'LEFT'}
@@ -65,19 +66,36 @@ if __name__ == '__main__':
     # env = Env(num_of_solar_panels=3, height=3, width=3, number_of_agents=2, max_fuel=10, fixed_starting=None)
     # env.render()
 
-    graph = Graph(height=3, width=3, max_agent_fuel=20, finishing_side="right")
+    # graph = Graph(height=3, width=3, max_agent_fuel=20, finishing_side="right")
+    #
+    # ucs = UniformCostSearch()
+    # solution = ucs.solve(graph)
+    #
+    # for state in solution.path:
+    #     print(state)
+    #     time.sleep(0.5)
+    #
+    # print("-" * 10)
+    # print("Solution Cost =", solution.cost)
+    # print("Number of Nodes Expanded =", solution.n_node_expanded)
+    # print("Run Time =", int(solution.solve_time), "sec")
 
-    ucs = UniformCostSearch()
-    solution = ucs.solve(graph)
+    num_of_solar_panels = 4
+    height = 3
+    width = 3
+    number_of_agents = 3
+    max_agent_fuel = {'Agent_1': 20, 'Agent_2': 20, 'Agent_3': 20}
+    fixed_starting = None
 
-    for state in solution.path:
-        print(state)
-        time.sleep(0.5)
+    actions_file_path = "pickles/" + f"{height}_BY_{width}_actions_for_{str(max_agent_fuel).replace(': ', '_')}.pkl"
+    costs_file_path = "pickles/" + f"{height}_BY_{width}_costs_for_{str(max_agent_fuel).replace(': ', '_')}.pkl"
 
-    print("-" * 10)
-    print("Solution Cost =", solution.cost)
-    print("Number of Nodes Expanded =", solution.n_node_expanded)
-    print("Run Time =", int(solution.solve_time), "sec")
+    meta_solver = metaSolver(num_of_solar_panels=num_of_solar_panels, height=height, width=width,
+                             number_of_agents=number_of_agents,
+                             max_agent_fuel=max_agent_fuel, fixed_starting=fixed_starting,
+                             actions_file_path=actions_file_path,
+                             costs_file_path=costs_file_path
+                             )
 
 
 

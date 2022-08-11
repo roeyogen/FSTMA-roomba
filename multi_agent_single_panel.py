@@ -137,7 +137,10 @@ class JointNode:
                     else:
                         res += " " + ("   " + str(val) + "   ").ljust(7) + " |"  # format
             res += "\n"
-        return "\n" + res +"\nagents_fuel = "+str([v[1] for v in self.agents.values()])
+        res += "Agent: \t\tLocation: \tFuel:\n"
+        for agent, value in self.agents.items():
+            res += agent + "\t\t " + str(value[0]) + "\t\t " + str(value[1]) + "\n"
+        return res + "\n"
 
     def is_goal(self):
 
@@ -263,8 +266,11 @@ class MetaJointNode:
                         res += " " + colored("".ljust(7), 'white') + " |"  # format
                     else:
                         res += " " + ("   " + str(val) + "   ").ljust(7) + " |"  # format
-            res += "\n"
-        return "\n" + res +"\nagents_fuel = "+str([v[1] for v in self.agents.values()])
+            res += "Agent: \t\tLocation: \tFuel: \tCost:\n"
+        for agent, value in self.agents.items():
+            res += agent + "\t\t " + str(value[0]) + "\t\t " + str(value[1]) + \
+                   "\t " + str(self.g_path[agent]) + "\n"
+        return res +"\n"
 
     def is_goal(self):
 
@@ -915,7 +921,6 @@ if __name__ == '__main__':
     for state in solution.path:
         print(state)
         time.sleep(0.5)
-        print(state.agents)
 
     print(solution.cost)
     print(solution.number_of_steps)
