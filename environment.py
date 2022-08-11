@@ -161,7 +161,7 @@ class Env(gym.Env):
         
         print("agent \t location \t fuel")
         for agent,value in self.agents.items():     
-            print(agent + " " + str(value[0])+ " " + str(value[1]))
+            print(agent + "\t" + str(value[0])+ "\t" + str(value[1]))
 
     def close(self):
         pass
