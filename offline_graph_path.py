@@ -48,7 +48,7 @@ class Node:
                     else:
                         res += " " + ("   " + str(val) + "   ").ljust(7) + " |"  # format
             res += "\n"
-        return res +"\nagent_fuel = "+str(self.agent_fuel)
+        return res +"Agent Fuel = "+str(self.agent_fuel)+"\n"
 
     def is_goal(self):
 
@@ -134,10 +134,10 @@ class MetaNode:
                         res += " " + ("   " + str(val) + "   ").ljust(7) + " |"  # format
             res += "\n"
 
-        res += "agent \t\tlocation \t\tfuel \t\tcost\n"
+        res += "Agent: \t\tLocation: \tFuel: \tCost:\n"
         for agent, value in self.agents.items():
-            res += agent + "\t\t" + str(value[0]) + "\t\t\t" + str(value[1])+\
-                   "\t\t\t" + str(self.g_path[agent]) +"\n"
+            res += agent + "\t\t " + str(value[0]) + "\t\t " + str(value[1])+\
+                   "\t\t " + str(self.g_path[agent]) +"\n"
         return res
 
     def is_goal(self):

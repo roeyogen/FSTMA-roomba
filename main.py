@@ -70,16 +70,14 @@ if __name__ == '__main__':
     ucs = UniformCostSearch()
     solution = ucs.solve(graph)
 
-    # print(*solution.path)
-
     for state in solution.path:
         print(state)
         time.sleep(0.5)
 
-
-    print(solution.cost)
-    print(solution.n_node_expanded)
-    print(solution.solve_time)
+    print("-" * 10)
+    print("Solution Cost =", solution.cost)
+    print("Number of Nodes Expanded =", solution.n_node_expanded)
+    print("Run Time =", int(solution.solve_time), "sec")
 
 
 
