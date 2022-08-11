@@ -137,7 +137,7 @@ class MetaNode:
         res += "Agent: \t\tLocation: \tFuel: \tCost:\n"
         for agent, value in self.agents.items():
             res += agent + "\t\t " + str(value[0]) + "\t\t " + str(value[1])+\
-                   "\t\t " + str(self.g_path[agent]) +"\n"
+                   "\t " + str(self.g_path[agent]) +"\n"
         return res
 
     def is_goal(self):
