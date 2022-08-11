@@ -150,7 +150,7 @@ class Env(gym.Env):
                             val = 'Agent_{}'.format(i + 1)
                     res += " " + colored(str(val).ljust(7), 'blue') + " |"  # format
                 elif val == self.CHARGE:
-                    res += " " + colored(("CHARGE"+"⚡️"[0]).ljust(7), 'green') + " |"  # format
+                    res += colored(("CHARGE"+"⚡️"[0]).ljust(7), 'green') + " |"  # format
                 else:
                     if val == 0:
                         res += " " + colored("".ljust(7), 'white') + " |"  # format
