@@ -95,7 +95,7 @@ class metaSolver:
 
             agent_costs = {'STAY': 1, 'RIGHT_RIGHT': None, 'RIGHT_LEFT': None, 'LEFT_LEFT': None, 'LEFT_RIGHT': None}
 
-            agent_actions = {'STAY': None, 'RIGHT_RIGHT': None, 'RIGHT_LEFT': None, 'LEFT_LEFT': None,
+            agent_actions = {'STAY': [], 'RIGHT_RIGHT': None, 'RIGHT_LEFT': None, 'LEFT_LEFT': None,
                              'LEFT_RIGHT': None}
 
             right_graph = Graph(self.height, self.width, self.max_agent_fuel['Agent_{}'.format(i + 1)],
@@ -187,7 +187,7 @@ class metaSolver:
 
     def get_multi_action_path(self, path):
 
-
+        """
         actions = {}
         starting_points = {}
 
@@ -227,7 +227,7 @@ class metaSolver:
                     x_loc = new_loc[agent][0]
 
                     if abs(new_board[(x_loc, changed_RIGHT_LEFT)] - prev_board[(x_loc, changed_RIGHT_LEFT)]) == 1 \
-                            and changed_RIGHT_LEFT < new_board.shape[1]:
+                            and changed_RIGHT_LEFT >= 0:
                         actions[agent].append('RIGHT_LEFT')
                     if abs(new_board[(x_loc, changed_LEFT_RIGHT)] - prev_board[(x_loc, changed_LEFT_RIGHT)]) == 1 \
                             and changed_LEFT_RIGHT >= 0:
@@ -235,9 +235,32 @@ class metaSolver:
 
             prev_loc = new_loc
             prev_board = new_board
-
         return actions, starting_points
 
+        """
+
+        actions = []
+        starting_points = {}
+        for agent, [location, fuel] in path[0].agents.items():
+            starting_points[agent] = location
+
+        current_node = path[-1]
+        while current_node.parent is not None:
+            current_action = None
+            for action, child in current_node.parent.next.items():
+                if child == current_node:
+                    current_action = action
+                    break
+            actions.append(current_action)
+            current_node = current_node.parent
+
+        for agent, sp in starting_points.items():
+            starting_points[agent] = self.meta_graph.charging_points.index(tuple(sp))
+
+        ret_act = {}
+        for i,agent in enumerate(starting_points.keys()):
+            ret_act[agent] = [a[i] for a in actions[::-1]]
+        return ret_act, starting_points
 
 
     @staticmethod
