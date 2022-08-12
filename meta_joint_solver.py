@@ -179,7 +179,7 @@ class metaJointSolver:
 
         waiting = 0
         swapped = True
-        max_waiting = max(single_costs['Agent_1'].values())
+        max_waiting = max(single_costs['Agent_1']['RIGHT_RIGHT'], single_costs['Agent_1']['LEFT_LEFT'])
         runner = 0
         fuel = {'Agent_1': self.max_agent_fuel['Agent_1'], 'Agent_2': self.max_agent_fuel['Agent_1']}
 
@@ -213,6 +213,7 @@ class metaJointSolver:
         waiting = 0
         runner = 0
         swapped = False
+        max_waiting = max(single_costs['Agent_1']['RIGHT_LEFT'],single_costs['Agent_1']['LEFT_RIGHT'])
         while runner < max_waiting:
 
             waiting_dict = {'Agent_1': waiting, 'Agent_2': 0}
@@ -227,7 +228,7 @@ class metaJointSolver:
             print(not_swapped_solution.solve_time)
             print(*not_swapped_solution.path)
 
-            runner = max(not_swapped_solution.number_of_steps.values())
+            runner = max(max(not_swapped_solution.number_of_steps.values()),runner)
             if runner >= max_waiting:
                 break
 
@@ -414,9 +415,9 @@ class metaJointSolver:
 
 
 if __name__ == '__main__':
-    num_of_solar_panels = 4
-    height = 2
-    width = 2
+    num_of_solar_panels = 3
+    height = 3
+    width = 3
     number_of_agents = 2
     max_agent_fuel = {'Agent_1': 20, 'Agent_2': 20}
     fixed_starting = None  # (0, 0)
