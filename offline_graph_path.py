@@ -347,6 +347,14 @@ class MetaGraph:
         if not len(set(locs)) == len(locs):
             return False
 
+        for i in range(len(locs)):
+            for j in range(len(locs2)):
+                if i == j :
+                    continue
+                if locs[i] == locs2[j] and locs[j] == locs2[i]:
+                    return False
+
+
         for i, loc in enumerate(locs):
             # check in in_board
             if not self.is_in_board(board, loc):

@@ -13,8 +13,7 @@ class metaJointSolver:
     ACTIONS = ['STAY', 'UP', 'DOWN', 'RIGHT', 'LEFT']
 
     def __init__(self, num_of_solar_panels=4, height=1, width=1, number_of_agents=2, max_agent_fuel={},
-                 fixed_starting=(0, 3), actions_file_path=None, costs_file_path=None,\
-                 joint_actions_file_path=None, joint_costs_file_path=None):
+                 fixed_starting=(0, 3)):
 
         self.num_of_solar_panels = num_of_solar_panels
         self.height = height
@@ -26,10 +25,21 @@ class metaJointSolver:
         self.max_agent_fuel = max_agent_fuel
         self.fixed_starting = fixed_starting
 
+        folder = "pickles/joint_agent_per_panel_cost_action/"
+
+        actions_file_path = folder + f"{height}_BY_{width}_actions_for_{str(max_agent_fuel).replace(': ', '_')}.pkl"
+        costs_file_path = folder + f"{height}_BY_{width}_costs_for_{str(max_agent_fuel).replace(': ', '_')}.pkl"
+        joint_actions_file_path = folder + f"{height}_BY_{width}_joint_actions_for_{str(max_agent_fuel).replace(': ', '_')}.pkl"
+        joint_costs_file_path = folder + f"{height}_BY_{width}_joint_costs_for_{str(max_agent_fuel).replace(': ', '_')}.pkl"
+
         actions_file = Path(actions_file_path)
         costs_file = Path(costs_file_path)
         joint_actions_file = Path(joint_actions_file_path)
         joint_costs_file = Path(joint_costs_file_path)
+
+        print('@' * 45)
+        print('@' * 5 + " " * 5 + "Part 1 - Cleaning a panel" + " " * 5 + '@' * 5)
+        print('@' * 45)
 
         if actions_file.is_file() and costs_file.is_file():
 
@@ -60,7 +70,7 @@ class metaJointSolver:
             joint_single_costs, joint_single_actions = self.calc_joint_cost(joint_actions_file_path,\
                                                                             joint_costs_file_path, single_costs)
 
-        print("running meta_solution:")
+
         all_costs = copy.deepcopy(single_costs)
         for agent, a_costs in joint_single_costs.items():
             for action,value in a_costs.items():
@@ -71,21 +81,43 @@ class metaJointSolver:
             for action, value in a_costs.items():
                 all_actions[agent][action] = value
 
+        print()
+        print('@' * 45)
+        print('@' * 5 + " " + "Part 2 - Running joint meta solution" + " " + '@' * 5)
+        print('@' * 45)
+
         self.meta_graph = MetaJointGraph(num_of_solar_panels=num_of_solar_panels,
                                     number_of_agents=number_of_agents, max_agent_fuel=max_agent_fuel,
                                     costs=all_costs, fixed_starting=fixed_starting)
 
         ucs = multi_agent_single_panel.UniformCostSearch()
-        self.meta_solution = ucs.solve(self.meta_graph)
+
+        meta_solution_file_path = "pickles/joint_agent_per_panel_meta_solution/" \
+                                  + f"{height}_BY_{width}_meta_solution_for_{str(max_agent_fuel).replace(': ','_')}.pkl"
+
+        meta_solution_file = Path(meta_solution_file_path)
+
+        if meta_solution_file.is_file():
+            print("meta_solution_file exists, reading from pickle\n")
+
+            meta_solution_file = open(meta_solution_file_path, "rb")
+            self.meta_solution = pickle.load(meta_solution_file)
+
+        else:
+            print("no prev calc found")
+            self.meta_solution = ucs.solve(self.meta_graph)
+
+            meta_solution_file = open(meta_solution_file_path, "wb")
+            pickle.dump(self.meta_solution, meta_solution_file)
+            meta_solution_file.close()
+
+
         for state in self.meta_solution.path:
             print(state)
             time.sleep(0.5)
-            print(state.agents)
         # print(*self.meta_solution.path)
-        print(self.meta_solution.cost)
-        print(self.meta_solution.number_of_steps)
-        print(self.meta_solution.n_node_expanded)
-        print(self.meta_solution.solve_time)
+
+
 
         meta_actions, meta_starts = self.get_multi_action_path(self.meta_solution.path)
 
@@ -95,7 +127,11 @@ class metaJointSolver:
 
         actions_list = self.get_action_per_timestep(action_paths)
 
-        print("creating env and printing solution:")
+        print()
+        print('@' * 45)
+        print('@' * 5 + " " * 6 + "Part 3 - Final solution" + " " * 6 + '@' * 5)
+        print('@' * 45)
+        print("creating env and printing solution:\n")
         env = Env(num_of_solar_panels=self.num_of_solar_panels, height=self.height,
                   width=self.width, number_of_agents=self.number_of_agents, max_fuel=max_agent_fuel,
                   fixed_starting=list(meta_starts.values()))
@@ -109,7 +145,12 @@ class metaJointSolver:
             env.step(a)
             env.render()
             if env.is_done():
-                print("success")
+                print("\nSuccess")
+                print("-" * 10)
+                print("Solution Cost =", self.meta_solution.cost)
+                print("Number of Steps =", self.meta_solution.number_of_steps)
+                print("Number of Nodes Expanded =", self.meta_solution.n_node_expanded)
+                print("Run Time =", int(self.meta_solution.solve_time), "sec")
                 break
 
 
@@ -421,16 +462,7 @@ if __name__ == '__main__':
     max_agent_fuel = {'Agent_1': 20, 'Agent_2': 20}
     fixed_starting = (0, 2)
 
-    actions_file_path = "pickles/" + f"{height}_BY_{width}_actions_for_{str(max_agent_fuel).replace(': ', '_')}.pkl"
-    costs_file_path = "pickles/" + f"{height}_BY_{width}_costs_for_{str(max_agent_fuel).replace(': ', '_')}.pkl"
-    joint_actions_file_path = "pickles/" + f"{height}_BY_{width}_joint_actions_for_{str(max_agent_fuel).replace(': ', '_')}.pkl"
-    joint_costs_file_path = "pickles/" + f"{height}_BY_{width}_joint_costs_for_{str(max_agent_fuel).replace(': ', '_')}.pkl"
 
     meta_joint_solver = metaJointSolver(num_of_solar_panels=num_of_solar_panels, height=height, width=width,
                              number_of_agents=number_of_agents,
-                             max_agent_fuel=max_agent_fuel, fixed_starting=fixed_starting,
-                             actions_file_path=actions_file_path,
-                             costs_file_path=costs_file_path,
-                             joint_actions_file_path=joint_actions_file_path,
-                             joint_costs_file_path=joint_costs_file_path
-                             )
+                             max_agent_fuel=max_agent_fuel, fixed_starting=fixed_starting)
