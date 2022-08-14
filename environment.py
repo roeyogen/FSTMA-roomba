@@ -20,7 +20,7 @@ class Env(gym.Env):
     OUT = -100
     CHARGE = 100
 
-    def __init__(self, num_of_solar_panels=3, height=3, width=3, number_of_agents=2, max_fuel=100, fixed_starting=None):
+    def __init__(self, num_of_solar_panels=3, height=3, width=3, number_of_agents=2, max_fuel={}, fixed_starting=None):
         super(Env, self).__init__()
 
         # Initialize the board
@@ -59,12 +59,13 @@ class Env(gym.Env):
         if fixed_starting is None:
             starting_points = random.sample([*self.charging_points], self.number_of_agents)
             for i in range(self.number_of_agents):
-                self.agents['Agent_{}'.format(i + 1)] = [starting_points[i], self.max_fuel]
+                self.agents['Agent_{}'.format(i + 1)] = [starting_points[i], self.max_fuel['Agent_{}'.format(i + 1)]]
 
         # Fixed positions
         else:
             for i in range(self.number_of_agents):
-                self.agents['Agent_{}'.format(i + 1)] = [self.charging_points[fixed_starting[i]], self.max_fuel]
+                self.agents['Agent_{}'.format(i + 1)] = [self.charging_points[fixed_starting[i]], self.max_fuel['Agent_{}'.format(i + 1)]]
+
 
         return self.board, self.agents
 
@@ -114,7 +115,10 @@ class Env(gym.Env):
                 continue
 
             new_agents[agent][0] = tuple(map(sum, zip(self.agents[agent][0], self.ACTIONS[a])))
-            new_agents[agent][1] -= 1
+            if new_agents[agent][0] in self.charging_points:
+                new_agents[agent][1] = self.max_fuel[agent]
+            else:
+                new_agents[agent][1] -= 1
         if not self.is_legal_step(new_agents):
             for a in self.agents.values():
                 if a[1] > 0:

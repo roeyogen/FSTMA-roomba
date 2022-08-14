@@ -97,7 +97,7 @@ class metaJointSolver:
 
         print("creating env and printing solution:")
         env = Env(num_of_solar_panels=self.num_of_solar_panels, height=self.height,
-                  width=self.width, number_of_agents=self.number_of_agents, max_fuel=300,
+                  width=self.width, number_of_agents=self.number_of_agents, max_fuel=max_agent_fuel,
                   fixed_starting=list(meta_starts.values()))
         env.render()
         for a in actions_list:
@@ -112,7 +112,6 @@ class metaJointSolver:
                 print("success")
                 break
 
-        print(meta_starts)
 
     def calc_cost(self, actions_file_path, costs_file_path):
 
@@ -179,7 +178,7 @@ class metaJointSolver:
 
         waiting = 0
         swapped = True
-        max_waiting = max(single_costs['Agent_1']['RIGHT_RIGHT'], single_costs['Agent_1']['LEFT_LEFT'])
+        max_waiting = single_costs['Agent_1']['RIGHT_LEFT']
         runner = 0
         fuel = {'Agent_1': self.max_agent_fuel['Agent_1'], 'Agent_2': self.max_agent_fuel['Agent_1']}
 
@@ -213,7 +212,7 @@ class metaJointSolver:
         waiting = 0
         runner = 0
         swapped = False
-        max_waiting = max(single_costs['Agent_1']['RIGHT_LEFT'],single_costs['Agent_1']['LEFT_RIGHT'])
+        max_waiting = single_costs['Agent_1']['RIGHT_LEFT']
         while runner < max_waiting:
 
             waiting_dict = {'Agent_1': waiting, 'Agent_2': 0}
@@ -228,7 +227,7 @@ class metaJointSolver:
             print(not_swapped_solution.solve_time)
             print(*not_swapped_solution.path)
 
-            runner = max(max(not_swapped_solution.number_of_steps.values()),runner)
+            runner = max(not_swapped_solution.number_of_steps.values())
             if runner >= max_waiting:
                 break
 
@@ -416,11 +415,11 @@ class metaJointSolver:
 
 if __name__ == '__main__':
     num_of_solar_panels = 3
-    height = 3
-    width = 3
+    height = 2
+    width = 2
     number_of_agents = 2
     max_agent_fuel = {'Agent_1': 20, 'Agent_2': 20}
-    fixed_starting = None  # (0, 0)
+    fixed_starting = (0, 2)
 
     actions_file_path = "pickles/" + f"{height}_BY_{width}_actions_for_{str(max_agent_fuel).replace(': ', '_')}.pkl"
     costs_file_path = "pickles/" + f"{height}_BY_{width}_costs_for_{str(max_agent_fuel).replace(': ', '_')}.pkl"

@@ -494,6 +494,18 @@ class JointGraph:
             if not action[i] == "STAY" and agents["Agent_{}".format(i + 1)][2] > 0:
                 return False
 
+
+        locs2 = [tuple(x[0]) for x in agents.values()]
+        for i, loc in enumerate(locs2):
+            if action[i] == "RIGHT_LEFT":
+                for i2, loc2 in enumerate(locs2):
+                    if action[i2] == "LEFT_RIGHT" and loc2[1] == loc[1] + 2:
+                        return False
+            if action[i] == "LEFT_RIGHT":
+                for i2, loc2 in enumerate(locs2):
+                    if action[i2] == "RIGHT_LEFT" and loc2[1] == loc[1] - 2:
+                        return False
+
         return True
 
     def successor(self, node):

@@ -47,18 +47,18 @@ def metaMain():
 
 if __name__ == '__main__':
 
-    # env = Env(num_of_solar_panels=4, height=5, width=3, number_of_agents=2, max_fuel=100, fixed_starting = [0,3])
-    # env.render()
-    # for i in range(10):
-    #     actions = []
-    #     for _ in range(env.number_of_agents):
-    #         actions.append(random.sample([*env.ACTIONS.keys()], 1)[0])
-    #     print(f"Actions: Agent_1={actions[0]}, Agent_2={actions[1]}")  # , , Agent_3={actions[2]}, , Agent_4={actions[3]}, , Agent_5={actions[4]}, , Agent_6={actions[5]}")
-    #     env.step(actions)
-    #     env.render()
-    #     if env.is_done():
-    #         print("success")
-    #         break
+    env = Env(num_of_solar_panels=4, height=5, width=3, number_of_agents=2, max_fuel=100, fixed_starting = [0,3])
+    env.render()
+    for i in range(10):
+        actions = []
+        for _ in range(env.number_of_agents):
+            actions.append(random.sample([*env.ACTIONS.keys()], 1)[0])
+        print(f"Actions: Agent_1={actions[0]}, Agent_2={actions[1]}")  # , , Agent_3={actions[2]}, , Agent_4={actions[3]}, , Agent_5={actions[4]}, , Agent_6={actions[5]}")
+        env.step(actions)
+        env.render()
+        if env.is_done():
+            print("success")
+            break
 
 
     #metaMain()
@@ -80,22 +80,22 @@ if __name__ == '__main__':
     # print("Number of Nodes Expanded =", solution.n_node_expanded)
     # print("Run Time =", int(solution.solve_time), "sec")
 
-    num_of_solar_panels = 4
-    height = 3
-    width = 3
-    number_of_agents = 3
-    max_agent_fuel = {'Agent_1': 20, 'Agent_2': 20, 'Agent_3': 20}
-    fixed_starting = None
-
-    actions_file_path = "pickles/" + f"{height}_BY_{width}_actions_for_{str(max_agent_fuel).replace(': ', '_')}.pkl"
-    costs_file_path = "pickles/" + f"{height}_BY_{width}_costs_for_{str(max_agent_fuel).replace(': ', '_')}.pkl"
-
-    meta_solver = metaSolver(num_of_solar_panels=num_of_solar_panels, height=height, width=width,
-                             number_of_agents=number_of_agents,
-                             max_agent_fuel=max_agent_fuel, fixed_starting=fixed_starting,
-                             actions_file_path=actions_file_path,
-                             costs_file_path=costs_file_path
-                             )
+    # num_of_solar_panels = 4
+    # height = 3
+    # width = 3
+    # number_of_agents = 3
+    # max_agent_fuel = {'Agent_1': 20, 'Agent_2': 20, 'Agent_3': 20}
+    # fixed_starting = None
+    #
+    # actions_file_path = "pickles/" + f"{height}_BY_{width}_actions_for_{str(max_agent_fuel).replace(': ', '_')}.pkl"
+    # costs_file_path = "pickles/" + f"{height}_BY_{width}_costs_for_{str(max_agent_fuel).replace(': ', '_')}.pkl"
+    #
+    # meta_solver = metaSolver(num_of_solar_panels=num_of_solar_panels, height=height, width=width,
+    #                          number_of_agents=number_of_agents,
+    #                          max_agent_fuel=max_agent_fuel, fixed_starting=fixed_starting,
+    #                          actions_file_path=actions_file_path,
+    #                          costs_file_path=costs_file_path
+    #                          )
 
 
 

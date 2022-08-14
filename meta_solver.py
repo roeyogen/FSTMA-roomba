@@ -62,7 +62,7 @@ class metaSolver:
 
         print("creating env and printing solution:")
         env = Env(num_of_solar_panels=self.num_of_solar_panels, height=self.height,
-                  width=self.width, number_of_agents=self.number_of_agents, max_fuel=300,
+                  width=self.width, number_of_agents=self.number_of_agents, max_fuel=self.max_agent_fuel,
                   fixed_starting=list(meta_starts.values()))
         env.render()
         for a in actions_list:
