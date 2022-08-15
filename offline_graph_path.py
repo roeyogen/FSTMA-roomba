@@ -1,3 +1,5 @@
+import pickle
+
 from heapdict import heapdict
 import numpy as np
 from termcolor import colored
@@ -604,26 +606,26 @@ if __name__ == '__main__':
     #costs = {'STAY': 1, 'RIGHT_RIGHT': 5, 'RIGHT_LEFT': 6, 'LEFT_LEFT': 5, 'LEFT_RIGHT': 6}
     #costs = {'STAY': 1, 'RIGHT_RIGHT': 1, 'RIGHT_LEFT': 1, 'LEFT_LEFT': 1, 'LEFT_RIGHT': 1}
 
-    costs = {'Agent_1': {'STAY': 1, 'RIGHT_RIGHT': 5, 'RIGHT_LEFT': 6, 'LEFT_LEFT': 5, 'LEFT_RIGHT': 6},
-                    'Agent_2': {'STAY': 1, 'RIGHT_RIGHT': 5, 'RIGHT_LEFT': 6, 'LEFT_LEFT': 5, 'LEFT_RIGHT': 6}}
-
-    max_agent_fuel = {"Agent_1": 20, "Agent_2": 20}
-
-    graph = MetaGraph(num_of_solar_panels=4, height=1, width=1,number_of_agents=2, max_agent_fuel=max_agent_fuel,
-                      costs=costs,fixed_starting=(0,3))
-
-    ucs = UniformCostSearch()
-    solution = ucs.solve(graph)
-
-    #print(*solution.path)
-
-    for state in solution.path:
-        print(state)
-        time.sleep(0.5)
-
-    print(solution.cost)
-    print(solution.n_node_expanded)
-    print(solution.solve_time)
+    # costs = {'Agent_1': {'STAY': 1, 'RIGHT_RIGHT': 5, 'RIGHT_LEFT': 6, 'LEFT_LEFT': 5, 'LEFT_RIGHT': 6},
+    #                 'Agent_2': {'STAY': 1, 'RIGHT_RIGHT': 5, 'RIGHT_LEFT': 6, 'LEFT_LEFT': 5, 'LEFT_RIGHT': 6}}
+    #
+    # max_agent_fuel = {"Agent_1": 20, "Agent_2": 20}
+    #
+    # graph = MetaGraph(num_of_solar_panels=4, height=1, width=1,number_of_agents=2, max_agent_fuel=max_agent_fuel,
+    #                   costs=costs,fixed_starting=(0,3))
+    #
+    # ucs = UniformCostSearch()
+    # solution = ucs.solve(graph)
+    #
+    # #print(*solution.path)
+    #
+    # for state in solution.path:
+    #     print(state)
+    #     time.sleep(0.5)
+    #
+    # print(solution.cost)
+    # print(solution.n_node_expanded)
+    # print(solution.solve_time)
 
     # meta_actions,meta_starts = get_multi_action_path(solution.path)
     #
@@ -675,6 +677,34 @@ if __name__ == '__main__':
     #         break
     #
     # print(meta_starts)
+
+
+    # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    # presentation prep
+    # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+    # 1. 3*3, Left to Right, Fuel = 20, UCS (no “cleanness” heuristic)
+
+    ### make sure to change my heuristic before run
+
+    graph = Graph(height=3, width=3, max_agent_fuel=20, finishing_side="right")
+
+    ucs = UniformCostSearch()
+    solution = ucs.solve(graph)
+
+    for state in solution.path:
+        print(state)
+        time.sleep(0.5)
+
+    print("-" * 10)
+    print("Solution Cost =", solution.cost)
+    print("Number of Nodes Expanded =", solution.n_node_expanded)
+    print("Run Time =", int(solution.solve_time), "sec")
+
+    solution_file_path = "pickles/presentation/Single Agent, Single Panel 3*3 no “cleanness” heuristic.pkl"
+    solution_file = open(solution_file_path, "wb")
+    pickle.dump(solution, solution_file)
+    solution_file.close()
 
 
 
