@@ -5,7 +5,7 @@ import numpy as np
 
 import offline_graph_path
 from environment import Env
-from offline_graph_path import UniformCostSearch, Graph, MetaGraph, Node, WAStart,single_heuristic,meta_heuristic
+from offline_graph_path import UniformCostSearch, Graph, MetaGraph, Node
 from pathlib import Path
 
 
@@ -77,7 +77,7 @@ class metaSolver:
 
         else:
             print("no prev calc found")
-            Astar = WAStart(offline_graph_path.meta_heuristic)
+            Astar = offline_graph_path.WAStart(offline_graph_path.meta_heuristic)
             self.meta_solution = Astar.solve(self.meta_graph)
             # self.meta_solution = ucs.solve(self.meta_graph)
 
@@ -162,7 +162,7 @@ class metaSolver:
 
             # right_ucs = UniformCostSearch()
             # right_solution = right_ucs.solve(right_graph)
-            right_Astar = WAStart(offline_graph_path.single_heuristic)
+            right_Astar = offline_graph_path.WAStart(offline_graph_path.single_heuristic)
             right_solution = right_Astar.solve(right_graph)
             print(right_solution.cost)
             print(right_solution.n_node_expanded)
@@ -175,7 +175,7 @@ class metaSolver:
                                finishing_side='left')
             # left_ucs = UniformCostSearch()
             # left_solution = left_ucs.solve(left_graph)
-            left_Astar = WAStart(offline_graph_path.single_heuristic)
+            left_Astar =offline_graph_path.WAStart(offline_graph_path.single_heuristic)
             left_solution = left_Astar.solve(left_graph)
             print(left_solution.cost)
             print(left_solution.n_node_expanded)
