@@ -737,6 +737,9 @@ class MetaJointGraph:
                         node.next_waiting['Agent_{}'.format(i + 1)] = waiting
                         maxi_wait = max(node.next_waiting.values())
 
+                        if maxi_wait not in self.costs['Agent_{}'.format(i + 1)][action[i]].keys():
+                            return node.next
+
                         new_g_path['Agent_{}'.format(i + 1)] += self.costs['Agent_{}'.format(i + 1)][action[i]][maxi_wait]
                     else:
                         new_g_path['Agent_{}'.format(i + 1)] += self.costs['Agent_{}'.format(i + 1)][action[i]]
@@ -918,45 +921,33 @@ def get_multi_action_path(path):
     return actions, starting_points
 
 
+class WAStart(BestFirstSearch):
+    def __init__(self, heuristic, w=0.5):
+        super().__init__()
+        assert 0 <= w <= 1
+        self.heuristic = heuristic
+        self.orig_heuristic = heuristic  # in case heuristic is an object function, we need to keep the class
+        self.w = w
+
+    def _calc_node_priority(self, node):
+        return (1 - self.w) * node.g_value + self.w * self.heuristic(node)
+
+
+def single_heuristic(node):
+    return np.sum(node.board[:, 1:-1])
+
+
+def meta_heuristic(node):
+    return np.sum(node.board[:, 1:-1:2])
+
 if __name__ == '__main__':
 
-    # max_agent_fuel = {"Agent_1": 30, "Agent_2": 30}
-    # waiting = {"Agent_1": 1, "Agent_2": 0}
-    # swapped = False
-    # graph = JointGraph(height=3, width=3, max_agent_fuel=max_agent_fuel, waiting=waiting, swapped=swapped)
-    #
-    # ucs = UniformCostSearch()
-    # solution = ucs.solve(graph)
-    #
-    # #print(*solution.path)
-    #
-    # for state in solution.path:
-    #     print(state)
-    #     time.sleep(0.5)
-    #
-    # print(solution.cost)
-    # print(solution.number_of_steps)
-    # print(solution.n_node_expanded)
-    # print(solution.solve_time)
-
-    costs = {'Agent_1': {'STAY': 1, 'RIGHT_RIGHT': 5, 'RIGHT_LEFT': 6, 'LEFT_LEFT': 5, 'LEFT_RIGHT': 6,
-                         'JRR': {0: 3, 1: 3},
-                         'JRL': {0: 4, 1: 4},
-                         'JLL': {0: 5, 1: 5},
-                         'JLR': {0: 4, 1: 4} },
-             'Agent_2': {'STAY': 1, 'RIGHT_RIGHT': 5, 'RIGHT_LEFT': 6, 'LEFT_LEFT': 5, 'LEFT_RIGHT': 6,
-                         'JRR': {0: 3, 1: 3},
-                         'JRL': {0: 4, 1: 4},
-                         'JLL': {0: 5, 1: 5},
-                         'JLR': {0: 4, 1: 4}}}
-
     max_agent_fuel = {"Agent_1": 30, "Agent_2": 30}
-    num_of_solar_panels = 3
-    fixed_starting = (0, 3)
-    graph = MetaJointGraph(num_of_solar_panels=num_of_solar_panels, number_of_agents=2,
-                           max_agent_fuel=max_agent_fuel, costs=costs, fixed_starting=fixed_starting)
+    waiting = {"Agent_1": 0, "Agent_2": 2}
+    swapped = False
+    graph = JointGraph(height=4, width=3, max_agent_fuel=max_agent_fuel, waiting=waiting, swapped=swapped)
 
-    ucs = UniformCostSearch()
+    ucs = WAStart(single_heuristic)
     solution = ucs.solve(graph)
 
     #print(*solution.path)
@@ -969,6 +960,37 @@ if __name__ == '__main__':
     print(solution.number_of_steps)
     print(solution.n_node_expanded)
     print(solution.solve_time)
+
+    # costs = {'Agent_1': {'STAY': 1, 'RIGHT_RIGHT': 5, 'RIGHT_LEFT': 6, 'LEFT_LEFT': 5, 'LEFT_RIGHT': 6,
+    #                      'JRR': {0: 3, 1: 3},
+    #                      'JRL': {0: 4, 1: 4},
+    #                      'JLL': {0: 5, 1: 5},
+    #                      'JLR': {0: 4, 1: 4} },
+    #          'Agent_2': {'STAY': 1, 'RIGHT_RIGHT': 5, 'RIGHT_LEFT': 6, 'LEFT_LEFT': 5, 'LEFT_RIGHT': 6,
+    #                      'JRR': {0: 3, 1: 3},
+    #                      'JRL': {0: 4, 1: 4},
+    #                      'JLL': {0: 5, 1: 5},
+    #                      'JLR': {0: 4, 1: 4}}}
+    #
+    # max_agent_fuel = {"Agent_1": 30, "Agent_2": 30}
+    # num_of_solar_panels = 3
+    # fixed_starting = (0, 3)
+    # graph = MetaJointGraph(num_of_solar_panels=num_of_solar_panels, number_of_agents=2,
+    #                        max_agent_fuel=max_agent_fuel, costs=costs, fixed_starting=fixed_starting)
+    #
+    # ucs = WAStart(meta_heuristic)
+    # solution = ucs.solve(graph)
+    #
+    # #print(*solution.path)
+    #
+    # for state in solution.path:
+    #     print(state)
+    #     time.sleep(0.5)
+    #
+    # print(solution.cost)
+    # print(solution.number_of_steps)
+    # print(solution.n_node_expanded)
+    # print(solution.solve_time)
 
 
 

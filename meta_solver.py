@@ -2,8 +2,10 @@ import copy
 import pickle
 import time
 import numpy as np
+
+import offline_graph_path
 from environment import Env
-from offline_graph_path import UniformCostSearch, Graph, MetaGraph, Node
+from offline_graph_path import UniformCostSearch, Graph, MetaGraph, Node, WAStart,single_heuristic,meta_heuristic
 from pathlib import Path
 
 
@@ -64,20 +66,20 @@ class metaSolver:
 
         meta_solution_file = Path(meta_solution_file_path)
 
+        is_file = False
         if meta_solution_file.is_file():
             print("meta_solution_file exists, reading from pickle")
 
             meta_solution_file = open(meta_solution_file_path, "rb")
             self.meta_solution = pickle.load(meta_solution_file)
+            is_file = True
+
 
         else:
             print("no prev calc found")
-            self.meta_solution = ucs.solve(self.meta_graph)
-
-            meta_solution_file = open(meta_solution_file_path, "wb")
-            pickle.dump(self.meta_solution, meta_solution_file)
-            meta_solution_file.close()
-
+            Astar = WAStart(offline_graph_path.meta_heuristic)
+            self.meta_solution = Astar.solve(self.meta_graph)
+            # self.meta_solution = ucs.solve(self.meta_graph)
 
 
         for state in self.meta_solution.path:
@@ -92,6 +94,23 @@ class metaSolver:
         action_paths = self.get_action_path_per_agent(meta_starts, meta_actions, single_actions)
 
         actions_list = self.get_action_per_timestep(action_paths)
+
+        if not is_file:
+            path = self.meta_solution.path
+            for i in range(len(path)):
+                for next_state in path[i].next.values():
+                    if next_state is not None:
+                        if next_state != path[i+1]:
+                            del next_state
+                        else:
+                            for _state in next_state.next.values():
+                                if _state not in path:
+                                    del _state
+
+
+            meta_solution_file = open(meta_solution_file_path, "wb")
+            pickle.dump(self.meta_solution, meta_solution_file)
+            meta_solution_file.close()
 
         print()
         print('@' * 45)
@@ -140,21 +159,30 @@ class metaSolver:
 
             right_graph = Graph(self.height, self.width, self.max_agent_fuel['Agent_{}'.format(i + 1)],
                                 finishing_side='right')
-            right_ucs = UniformCostSearch()
-            right_solution = right_ucs.solve(right_graph)
+
+            # right_ucs = UniformCostSearch()
+            # right_solution = right_ucs.solve(right_graph)
+            right_Astar = WAStart(offline_graph_path.single_heuristic)
+            right_solution = right_Astar.solve(right_graph)
             print(right_solution.cost)
             print(right_solution.n_node_expanded)
             print(right_solution.solve_time)
             print(*right_solution.path)
+            for state in right_solution.path:
+                del state.next
 
             left_graph = Graph(self.height, self.width, self.max_agent_fuel['Agent_{}'.format(i + 1)],
                                finishing_side='left')
-            left_ucs = UniformCostSearch()
-            left_solution = left_ucs.solve(left_graph)
+            # left_ucs = UniformCostSearch()
+            # left_solution = left_ucs.solve(left_graph)
+            left_Astar = WAStart(offline_graph_path.single_heuristic)
+            left_solution = left_Astar.solve(left_graph)
             print(left_solution.cost)
             print(left_solution.n_node_expanded)
             print(left_solution.solve_time)
             print(*left_solution.path)
+            for state in left_solution.path:
+                del state.next
 
             agent_costs['RIGHT_RIGHT'] = right_solution.cost
             agent_costs['LEFT_LEFT'] = right_solution.cost
@@ -227,58 +255,6 @@ class metaSolver:
 
     def get_multi_action_path(self, path):
 
-        """
-        actions = {}
-        starting_points = {}
-
-        prev_loc = {}
-
-        for agent, [location, fuel] in path[0].agents.items():
-            prev_loc[agent] = location
-            actions[agent] = []
-
-        starting_points = copy.deepcopy(prev_loc)
-        # starting_points = tuple([x[1]//2 for x in starting_points.values()])
-        for k, v in starting_points.items():
-            starting_points[k] = v[1]//2
-        prev_board = path[0].board
-
-        for p in path[1:]:
-
-            new_loc = {}
-
-            new_board = p.board
-
-            for agent, [location, fuel] in p.agents.items():
-
-                new_loc[agent] = location
-
-                diff_y = new_loc[agent][1] - prev_loc[agent][1]
-
-                if diff_y == 0 and np.array_equal(prev_board, new_board):
-                    actions[agent].append('STAY')
-                elif diff_y == 2:
-                    actions[agent].append('RIGHT_RIGHT')
-                elif diff_y == -2:
-                    actions[agent].append('LEFT_LEFT')
-                elif diff_y == 0:
-                    changed_RIGHT_LEFT = new_loc[agent][1] + 1
-                    changed_LEFT_RIGHT = new_loc[agent][1] - 1
-                    x_loc = new_loc[agent][0]
-
-                    if abs(new_board[(x_loc, changed_RIGHT_LEFT)] - prev_board[(x_loc, changed_RIGHT_LEFT)]) == 1 \
-                            and changed_RIGHT_LEFT >= 0:
-                        actions[agent].append('RIGHT_LEFT')
-                    if abs(new_board[(x_loc, changed_LEFT_RIGHT)] - prev_board[(x_loc, changed_LEFT_RIGHT)]) == 1 \
-                            and changed_LEFT_RIGHT >= 0:
-                        actions[agent].append('LEFT_RIGHT')
-
-            prev_loc = new_loc
-            prev_board = new_board
-        return actions, starting_points
-
-        """
-
         actions = []
         starting_points = {}
         for agent, [location, fuel] in path[0].agents.items():
@@ -336,12 +312,23 @@ class metaSolver:
 
 
 if __name__ == '__main__':
-    num_of_solar_panels = 3
+    # num_of_solar_panels = 3
+    # height = 2
+    # width = 2
+    # number_of_agents = 2
+    # max_agent_fuel = {'Agent_1': 20, 'Agent_2': 20}
+    # fixed_starting = (0, 3)
+    #
+    # meta_solver = metaSolver(num_of_solar_panels=num_of_solar_panels, height=height, width=width,
+    #                          number_of_agents=number_of_agents,
+    #                          max_agent_fuel=max_agent_fuel, fixed_starting=fixed_starting)
+
+    num_of_solar_panels = 4
     height = 2
     width = 2
-    number_of_agents = 2
-    max_agent_fuel = {'Agent_1': 20, 'Agent_2': 20}
-    fixed_starting = (0, 3)
+    number_of_agents = 3
+    max_agent_fuel = {'Agent_1': 20, 'Agent_2': 20, 'Agent_3': 20}
+    fixed_starting = None
 
     meta_solver = metaSolver(num_of_solar_panels=num_of_solar_panels, height=height, width=width,
                              number_of_agents=number_of_agents,

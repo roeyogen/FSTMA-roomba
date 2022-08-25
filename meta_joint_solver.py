@@ -3,7 +3,7 @@ import pickle
 import time
 import numpy as np
 from environment import Env
-from multi_agent_single_panel import MetaJointGraph, JointGraph
+from multi_agent_single_panel import MetaJointGraph, JointGraph , WAStart,meta_heuristic,single_heuristic
 import multi_agent_single_panel
 from offline_graph_path import UniformCostSearch, Graph, MetaGraph, Node
 from pathlib import Path
@@ -97,19 +97,23 @@ class metaJointSolver:
 
         meta_solution_file = Path(meta_solution_file_path)
 
+        is_file = False
         if meta_solution_file.is_file():
             print("meta_solution_file exists, reading from pickle\n")
 
             meta_solution_file = open(meta_solution_file_path, "rb")
             self.meta_solution = pickle.load(meta_solution_file)
+            is_file = True
+
 
         else:
             print("no prev calc found")
-            self.meta_solution = ucs.solve(self.meta_graph)
 
-            meta_solution_file = open(meta_solution_file_path, "wb")
-            pickle.dump(self.meta_solution, meta_solution_file)
-            meta_solution_file.close()
+            Astar = WAStart(meta_heuristic)
+            self.meta_solution = Astar.solve(self.meta_graph)
+
+            #self.meta_solution = ucs.solve(self.meta_graph)
+
 
 
         for state in self.meta_solution.path:
@@ -126,6 +130,23 @@ class metaJointSolver:
         action_paths = self.get_action_path_per_agent(meta_starts, meta_actions, all_actions)
 
         actions_list = self.get_action_per_timestep(action_paths)
+
+        if not is_file:
+            path = self.meta_solution.path
+            for i in range(len(path)):
+                for next_state in path[i].next.values():
+                    del next_state
+                    # if next_state is not None:
+                    #     if next_state != path[i + 1]:
+                    #         del next_state
+                    #     else:
+                    #         for _state in next_state.next.values():
+                    #             if _state not in path:
+                    #                 del _state
+
+            meta_solution_file = open(meta_solution_file_path, "wb")
+            pickle.dump(self.meta_solution, meta_solution_file)
+            meta_solution_file.close()
 
         print()
         print('@' * 45)
@@ -167,21 +188,31 @@ class metaJointSolver:
 
             right_graph = Graph(self.height, self.width, self.max_agent_fuel['Agent_{}'.format(i + 1)],
                                 finishing_side='right')
-            right_ucs = UniformCostSearch()
-            right_solution = right_ucs.solve(right_graph)
+            # right_ucs = UniformCostSearch()
+            # right_solution = right_ucs.solve(right_graph)
+            right_Astar = WAStart(single_heuristic)
+            right_solution = right_Astar.solve(right_graph)
+
             print(right_solution.cost)
             print(right_solution.n_node_expanded)
             print(right_solution.solve_time)
             print(*right_solution.path)
+            for state in right_solution.path:
+                del state.next
 
             left_graph = Graph(self.height, self.width, self.max_agent_fuel['Agent_{}'.format(i + 1)],
                                finishing_side='left')
-            left_ucs = UniformCostSearch()
-            left_solution = left_ucs.solve(left_graph)
+            # left_ucs = UniformCostSearch()
+            # left_solution = left_ucs.solve(left_graph)
+            left_Astar = WAStart(single_heuristic)
+            left_solution = left_Astar.solve(left_graph)
+
             print(left_solution.cost)
             print(left_solution.n_node_expanded)
             print(left_solution.solve_time)
             print(*left_solution.path)
+            for state in left_solution.path:
+                del state.next
 
             agent_costs['RIGHT_RIGHT'] = right_solution.cost
             agent_costs['LEFT_LEFT'] = right_solution.cost
@@ -229,13 +260,18 @@ class metaJointSolver:
             swapped_graph = JointGraph(height=self.height, width=self.width, max_agent_fuel=fuel,
                                waiting=waiting_dict, swapped=swapped)
 
-            swapped_ucs = multi_agent_single_panel.UniformCostSearch()
-            swapped_solution = swapped_ucs.solve(swapped_graph)
+            # swapped_ucs = multi_agent_single_panel.UniformCostSearch()
+            # swapped_solution = swapped_ucs.solve(swapped_graph)
+            swapped_Astar = WAStart(single_heuristic)
+            swapped_solution = swapped_Astar.solve(swapped_graph)
+
             print(swapped_solution.cost)
             print(swapped_solution.number_of_steps)
             print(swapped_solution.n_node_expanded)
             print(swapped_solution.solve_time)
             print(*swapped_solution.path)
+            for state in swapped_solution.path:
+                del state.next
 
             runner = max(swapped_solution.number_of_steps.values())
             if runner >= max_waiting:
@@ -260,13 +296,18 @@ class metaJointSolver:
             not_swapped_graph = JointGraph(height=self.height, width=self.width, max_agent_fuel=fuel,
                                        waiting=waiting_dict, swapped=swapped)
 
-            not_swapped_ucs = multi_agent_single_panel.UniformCostSearch()
-            not_swapped_solution = not_swapped_ucs.solve(not_swapped_graph)
+            # not_swapped_ucs = multi_agent_single_panel.UniformCostSearch()
+            # not_swapped_solution = not_swapped_ucs.solve(not_swapped_graph)
+            not_swapped_Astar = WAStart(single_heuristic)
+            not_swapped_solution = not_swapped_Astar.solve(not_swapped_graph)
+
             print(not_swapped_solution.cost)
             print(not_swapped_solution.number_of_steps)
             print(not_swapped_solution.n_node_expanded)
             print(not_swapped_solution.solve_time)
             print(*not_swapped_solution.path)
+            for state in not_swapped_solution.path:
+                del state.next
 
             runner = max(not_swapped_solution.number_of_steps.values())
             if runner >= max_waiting:
@@ -454,13 +495,16 @@ class metaJointSolver:
         return actions_list
 
 
+
+
+
 if __name__ == '__main__':
-    num_of_solar_panels = 3
+    num_of_solar_panels = 5
     height = 2
     width = 2
-    number_of_agents = 2
-    max_agent_fuel = {'Agent_1': 20, 'Agent_2': 20}
-    fixed_starting = (0, 2)
+    number_of_agents = 3
+    max_agent_fuel = {'Agent_1': 20, 'Agent_2': 20,'Agent_3': 20}
+    fixed_starting = (0,2,4)
 
 
     meta_joint_solver = metaJointSolver(num_of_solar_panels=num_of_solar_panels, height=height, width=width,
