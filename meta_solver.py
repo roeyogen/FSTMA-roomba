@@ -13,7 +13,7 @@ class metaSolver:
     ACTIONS = ['STAY', 'UP', 'DOWN', 'RIGHT', 'LEFT']
 
     def __init__(self, num_of_solar_panels=4, height=1, width=1, number_of_agents=2, max_agent_fuel={},
-                 fixed_starting=(0, 3)):
+                 fixed_starting=(0, 3),is_notebook = False):
 
         self.num_of_solar_panels = num_of_solar_panels
         self.height = height
@@ -29,6 +29,10 @@ class metaSolver:
                             + f"{height}_BY_{width}_actions_for_{str(max_agent_fuel).replace(': ', '_')}.pkl"
         costs_file_path = "pickles/one_agent_per_panel_cost_action/"\
                           + f"{height}_BY_{width}_costs_for_{str(max_agent_fuel).replace(': ', '_')}.pkl"
+
+        if is_notebook:
+            actions_file_path = actions_file_path.replace("pickles","/content/drive/My Drive/Colab Notebooks/pickles")
+            costs_file_path = costs_file_path.replace("pickles", "/content/drive/My Drive/Colab Notebooks/pickles")
 
         actions_file = Path(actions_file_path)
         costs_file = Path(costs_file_path)
@@ -63,6 +67,9 @@ class metaSolver:
 
         meta_solution_file_path = "pickles/one_agent_per_panel_meta_solution/" \
                             + f"{height}_BY_{width}_meta_solution_for_{str(max_agent_fuel).replace(': ', '_')}.pkl"
+
+        if is_notebook:
+            meta_solution_file_path = meta_solution_file_path.replace("pickles","/content/drive/My Drive/Colab Notebooks/pickles")
 
         meta_solution_file = Path(meta_solution_file_path)
 
@@ -332,4 +339,4 @@ if __name__ == '__main__':
 
     meta_solver = metaSolver(num_of_solar_panels=num_of_solar_panels, height=height, width=width,
                              number_of_agents=number_of_agents,
-                             max_agent_fuel=max_agent_fuel, fixed_starting=fixed_starting)
+                             max_agent_fuel=max_agent_fuel, fixed_starting=fixed_starting,is_notebook=True)
