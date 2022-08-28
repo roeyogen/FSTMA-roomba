@@ -1,0 +1,15 @@
+name: fstma-roomba
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - jupyterlab
+  - python=3.8
+  - ipywidgets
+  - ipython
+  - numpy
+  - pickle
+  - git
+  - pip
+  - pip:
+    - git+https://github.com/roeyogen/FSTMA-roomba
