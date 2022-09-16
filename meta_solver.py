@@ -31,8 +31,8 @@ class metaSolver:
                           + f"{height}_BY_{width}_costs_for_{str(max_agent_fuel).replace(': ', '_')}.pkl"
 
         if is_notebook:
-            actions_file_path = actions_file_path.replace("pickles","/content/drive/My Drive/Colab Notebooks/pickles")
-            costs_file_path = costs_file_path.replace("pickles", "/content/drive/My Drive/Colab Notebooks/pickles")
+            actions_file_path = actions_file_path.replace("pickles","/content/drive/MyDrive/'Colab Notebooks'/pickles")
+            costs_file_path = costs_file_path.replace("pickles", "/content/drive/MyDrive/'Colab Notebooks'/pickles")
 
         actions_file = Path(actions_file_path)
         costs_file = Path(costs_file_path)
@@ -69,7 +69,7 @@ class metaSolver:
                             + f"{height}_BY_{width}_meta_solution_for_{str(max_agent_fuel).replace(': ', '_')}.pkl"
 
         if is_notebook:
-            meta_solution_file_path = meta_solution_file_path.replace("pickles","/content/drive/My Drive/Colab Notebooks/pickles")
+            meta_solution_file_path = meta_solution_file_path.replace("pickles","/content/drive/MyDrive/'Colab Notebooks'/pickles")
 
         meta_solution_file = Path(meta_solution_file_path)
 
