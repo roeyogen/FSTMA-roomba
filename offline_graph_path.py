@@ -257,6 +257,15 @@ class Graph:
         board[:, -1] = self.OUT
         board[self.height // 2, -1] = self.CHARGE
 
+
+        # adding dirty in certain spots
+        # board[2, 1] = 3
+        # board[1,2] = 2
+        # board[3, 3] = 4
+        # board[4,4] = 3
+        # board[2, 5] = 2
+        # board[5,6] = 5
+
         # agent starts at left of board
         agent_loc = [self.height // 2, 0]
 
@@ -464,7 +473,7 @@ class BestFirstSearch:
 
     def _calc_node_priority(self, node):
         # calc how clean board is
-        return node.g_value + np.sum(node.board[:, 1:-1])
+        return node.g_value
 
     def solve(self, graph, time_limit=float("inf"), compute_all_dists=False):
         start_time = curr_time()
@@ -547,7 +556,7 @@ class UniformCostSearch(BestFirstSearch):
         self.name = "uniform cost search"
 
     def _calc_node_priority(self, node):
-        return node.g_value + np.sum(node.board[:, 1:-1:2])
+        return node.g_value
 
 def get_multi_action_path(path):
 
@@ -602,31 +611,53 @@ def get_multi_action_path(path):
 
     return actions,starting_points
 
+class WAStart(BestFirstSearch):
+    def __init__(self, heuristic, w=0.5):
+        super().__init__()
+        assert 0 <= w <= 1
+        self.heuristic = heuristic
+        self.orig_heuristic = heuristic  # in case heuristic is an object function, we need to keep the class
+        self.w = w
+
+    def _calc_node_priority(self, node):
+        return (1 - self.w) * node.g_value + self.w * self.heuristic(node)
+
+
+def single_heuristic(node):
+    return np.sum(node.board[:, 1:-1])
+
+
+def meta_heuristic(node):
+    return np.sum(node.board[:, 1:-1:2])
+
+
 if __name__ == '__main__':
 
     #costs = {'STAY': 1, 'RIGHT_RIGHT': 5, 'RIGHT_LEFT': 6, 'LEFT_LEFT': 5, 'LEFT_RIGHT': 6}
     #costs = {'STAY': 1, 'RIGHT_RIGHT': 1, 'RIGHT_LEFT': 1, 'LEFT_LEFT': 1, 'LEFT_RIGHT': 1}
 
-    # costs = {'Agent_1': {'STAY': 1, 'RIGHT_RIGHT': 5, 'RIGHT_LEFT': 6, 'LEFT_LEFT': 5, 'LEFT_RIGHT': 6},
-    #                 'Agent_2': {'STAY': 1, 'RIGHT_RIGHT': 5, 'RIGHT_LEFT': 6, 'LEFT_LEFT': 5, 'LEFT_RIGHT': 6}}
-    #
-    # max_agent_fuel = {"Agent_1": 20, "Agent_2": 20}
-    #
-    # graph = MetaGraph(num_of_solar_panels=4, height=1, width=1,number_of_agents=2, max_agent_fuel=max_agent_fuel,
-    #                   costs=costs,fixed_starting=(0,3))
-    #
+    costs = {'Agent_1': {'STAY': 1, 'RIGHT_RIGHT': 5, 'RIGHT_LEFT': 6, 'LEFT_LEFT': 5, 'LEFT_RIGHT': 6},
+                    'Agent_2': {'STAY': 1, 'RIGHT_RIGHT': 5, 'RIGHT_LEFT': 6, 'LEFT_LEFT': 5, 'LEFT_RIGHT': 6}}
+
+    max_agent_fuel = {"Agent_1": 20, "Agent_2": 20}
+
+    graph = MetaGraph(num_of_solar_panels=4, height=1, width=1,number_of_agents=2, max_agent_fuel=max_agent_fuel,
+                      costs=costs,fixed_starting=(0,3))
+
     # ucs = UniformCostSearch()
     # solution = ucs.solve(graph)
-    #
-    # #print(*solution.path)
-    #
-    # for state in solution.path:
-    #     print(state)
-    #     time.sleep(0.5)
-    #
-    # print(solution.cost)
-    # print(solution.n_node_expanded)
-    # print(solution.solve_time)
+    Astar = WAStart(meta_heuristic)
+    solution = Astar.solve(graph)
+
+    #print(*solution.path)
+
+    for state in solution.path:
+        print(state)
+        time.sleep(0.5)
+
+    print(solution.cost)
+    print(solution.n_node_expanded)
+    print(solution.solve_time)
 
     # meta_actions,meta_starts = get_multi_action_path(solution.path)
     #
@@ -679,7 +710,19 @@ if __name__ == '__main__':
     #
     # print(meta_starts)
 
+    right_graph = Graph(3, 3, 20,finishing_side='right')
 
+    # right_ucs = UniformCostSearch()
+    # right_solution = right_ucs.solve(right_graph)
+    right_Astar = WAStart(heuristic = single_heuristic)
+    right_solution = right_Astar.solve(right_graph)
+    print(right_solution.cost)
+    print(right_solution.n_node_expanded)
+    print(right_solution.solve_time)
+    print(*right_solution.path)
+
+
+    print("Done")
     # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     # presentation prep
     # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -697,10 +740,6 @@ if __name__ == '__main__':
         print(state)
         time.sleep(0.5)
 
-    print("-" * 10)
-    print("Solution Cost =", solution.cost)
-    print("Number of Nodes Expanded =", solution.n_node_expanded)
-    print("Run Time =", int(solution.solve_time), "sec")
 
     solution_file_path = "pickles/presentation/Single Agent, Single Panel 3*3 no “cleanness” heuristic.pkl"
     solution_file = open(solution_file_path, "wb")

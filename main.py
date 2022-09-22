@@ -7,6 +7,7 @@ import math
 import time
 import pickle
 
+from meta_environment import MetaEnv
 from meta_solver import metaSolver
 from offline_graph_path import *
 from meta_solver import *
@@ -610,24 +611,14 @@ if __name__ == '__main__':
     # Part_1_Calculation()
     #
     #
-    # Part_1_Testing()
+    Part_1_Testing()
 
     # Part_2_Calculation()
 
-    # Part_2_Testing()
+    Part_2_Testing()
 
-    print("\n@@@@@@@@@@ 5. Multiple agents on joint panels (2 agents 3 boards)")
 
-    num_of_solar_panels = 3
-    height = 3
-    width = 3
-    number_of_agents = 2
-    max_agent_fuel = {'Agent_1': 20, 'Agent_2': 20}
-    fixed_starting = (0, 3)
 
-    meta_joint_solver = metaJointSolver(num_of_solar_panels=num_of_solar_panels, height=height, width=width,
-                                        number_of_agents=number_of_agents,
-                                        max_agent_fuel=max_agent_fuel, fixed_starting=fixed_starting)
 
 
 
